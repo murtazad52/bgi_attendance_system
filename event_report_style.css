@@ -1,0 +1,123 @@
+
+/* General Layout */
+body {
+    font-family: 'Segoe UI', sans-serif;
+    background: #f0f2f5;
+    padding: 20px;
+    color: #333;
+}
+.container {
+    max-width: 1200px;
+    margin: auto;
+    background: #fff;
+    padding: 30px;
+    border-radius: 12px;
+    box-shadow: 0 0 12px rgba(0,0,0,0.1);
+}
+h2 {
+    margin-bottom: 20px;
+    color: #007BFF;
+}
+
+/* Summary Boxes */
+.summary {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 30px;
+}
+.summary div {
+    background: #f8f9fa;
+    padding: 20px;
+    border-radius: 8px;
+    text-align: center;
+    width: 23%;
+    box-shadow: 0 0 5px rgba(0,0,0,0.05);
+}
+.summary div span {
+    display: block;
+    font-size: 22px;
+    font-weight: bold;
+    color: #343a40;
+}
+
+/* Table Styling */
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+}
+th, td {
+    padding: 12px 15px;
+    border: 1px solid #dee2e6;
+    text-align: center;
+}
+th {
+    background: #007BFF;
+    color: white;
+}
+tr:nth-child(even) {
+    background: #f8f9fa;
+}
+
+/* Attendance Status Classes */
+.ontime {
+    color: green;
+    font-weight: bold;
+}
+.late {
+    color: orange;
+    font-weight: bold;
+}
+.absent {
+    color: red;
+    font-weight: bold;
+}
+
+/* Filter Form */
+form.filter-form {
+    margin-bottom: 20px;
+}
+form.filter-form input[type="text"],
+form.filter-form select {
+    padding: 8px;
+    font-size: 16px;
+    margin-right: 15px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    width: 200px;
+}
+form.filter-form button {
+    padding: 8px 16px;
+    background: #007BFF;
+    color: #fff;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+form.filter-form button:hover {
+    background: #0056b3;
+}
+
+/* Green Link Styling */
+a {
+    text-decoration: none;
+    color: #28a745;
+    padding: 4px 6px;
+    transition: color 0.3s ease;
+}
+a:hover {
+    color: #1e7e34;
+    text-decoration: underline;
+}
+
+/* Back Button */
+.back-link, .back-button {
+    margin-top: 20px;
+    display: inline-block;
+    background: #6c757d;
+    color: white;
+    padding: 10px 20px;
+    text-decoration: none;
+    border-radius: 5px;
+    font-weight: bold;
+}

@@ -1,0 +1,25 @@
+# Backup files
+*.bak
+*.bak2
+*.bak3
+*.bak4
+*.bak5
+
+# Zip archives
+*.zip
+
+# Generated QR code images
+qrcodes/
+5-30394002.png
+
+# phpqrcode generated cache (binary, regenerated at runtime)
+phpqrcode/cache/
+
+# Config (stored outside project root — never commit credentials)
+# /c/xampp/config/ is already outside this directory
+
+# OS & IDE
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
