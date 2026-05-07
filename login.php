@@ -100,7 +100,7 @@ $conn->close();
 <div class="login-container">
     <div class="login-brand"><?= htmlspecialchars(bgi_app_name()) ?></div>
     <h2>Portal Login</h2>
-    <p class="login-subtitle">Super Admin, Idara Admin, Idara Attendance Admin, and Mohalla Admin sign in here with their assigned access scope, while members, Team Leaders, and Captains sign in through the member portal using ITS ID and phone.</p>
+    <p class="login-subtitle">Sign in to access the attendance management system.</p>
 
     <?php if ($error !== '') { echo '<div class="error">' . htmlspecialchars($error) . '</div>'; } ?>
 
@@ -119,8 +119,8 @@ $conn->close();
 
         <p class="login-subtitle" id="login_hint">
             <?= $loginType === 'member'
-                ? 'Members sign in using their ITS ID and phone number. Team Leaders can view assigned team reports, Captains can view their scope reports, and Members can view only their own reports.'
-                : 'Staff sign in using their assigned username and password. Super Admin has global access, Idara roles stay inside one Idara and Mohalla, and Mohalla Admin works across one Mohalla.' ?>
+                ? 'Enter your ITS ID and registered phone number.'
+                : 'Enter your assigned username and password.' ?>
         </p>
         <input type="submit" value="Login">
     </form>
