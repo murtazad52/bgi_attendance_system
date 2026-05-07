@@ -7,12 +7,17 @@ if (function_exists('bgi_bootstrap_access_schema')) {
     bgi_bootstrap_access_schema($conn);
 }
 
+$allowedOrigins = [
+    'https://badriattendance.duckdns.org',
+    'http://localhost:8081',
+    'http://localhost:19006',
+];
 $origin = $_SERVER['HTTP_ORIGIN'] ?? '';
-if ($origin !== '') {
+if (in_array($origin, $allowedOrigins, true)) {
     header('Access-Control-Allow-Origin: ' . $origin);
     header('Vary: Origin');
+    header('Access-Control-Allow-Credentials: true');
 }
-header('Access-Control-Allow-Credentials: true');
 header('Access-Control-Allow-Headers: Content-Type, X-Requested-With');
 header('Access-Control-Allow-Methods: GET, POST, OPTIONS');
 header('Content-Type: application/json; charset=utf-8');
