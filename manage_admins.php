@@ -48,49 +48,6 @@ if ($result) {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Manage Admins - <?= htmlspecialchars(bgi_app_name()) ?></title>
-    <style>
-        .role-chip,
-        .access-chip {
-            display: inline-flex;
-            align-items: center;
-            padding: 6px 12px;
-            border-radius: 999px;
-            font-size: 0.84rem;
-            font-weight: 800;
-            letter-spacing: 0.02em;
-        }
-
-        .role-super {
-            background: #efe7ff;
-            color: #6b21a8;
-        }
-
-        .role-admin {
-            background: #e6f6ec;
-            color: #0f5132;
-        }
-
-        .role-mohalla {
-            background: #eef4ff;
-            color: #1d4ed8;
-        }
-
-        .role-attendance {
-            background: #fff3df;
-            color: #b45309;
-        }
-
-        .access-chip {
-            background: #edf7f1;
-            color: #176b53;
-        }
-
-        .protected-note {
-            color: #607168;
-            font-size: 0.86rem;
-            font-weight: 700;
-        }
-    </style>
     <link rel="stylesheet" href="app.css">
 </head>
 <body class="app-page page-table">

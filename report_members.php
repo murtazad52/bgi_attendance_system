@@ -568,40 +568,23 @@ mysqli_close($conn);
 ?>
 
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Member Attendance Summary</title>
-    <style>
-        body { font-family: Arial; background: #f4f6f8; padding: 20px; }
-        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-        th, td { border: 1px solid #ccc; padding: 8px; text-align: center; }
-        th { background: #2E8B57; color: white; }
-        .filter-form { margin-bottom: 20px; }
-        .filter-form input[type="text"], select { padding: 8px; font-size: 16px; margin-right: 10px; }
-        .filter-form button { padding: 8px 16px; font-size: 16px; background: #2E8B57; color: white; border: none; cursor: pointer; }
-        .filter-form button:hover { background: #246B46; }
-        .status-present { color: green; font-weight: bold; }
-        .status-late { color: orange; font-weight: bold; }
-        .status-absent { color: red; font-weight: bold; }
-        .status-out-of-kuwait { color: #0c5460; font-weight: bold; }
-    </style>
+    <title>Member Attendance Summary - <?= htmlspecialchars(bgi_app_name()) ?></title>
     <link rel="stylesheet" href="app.css">
 </head>
 <body class="app-page page-table">
 
 <div class="page-shell">
-    <?php if ($isMemberView): ?>
-        <div class="hero-actions">
-            <a href="report_events.php" class="btn secondary">Open Event Report</a>
+    <div class="hero-actions">
+        <a href="<?= htmlspecialchars($homePath) ?>" class="btn secondary">&larr; <?= $isMemberView ? 'Back' : 'Back to Dashboard' ?></a>
+        <?php if ($isMemberView): ?>
+            <a href="report_events.php" class="btn secondary">Event Report</a>
             <a href="logout.php" class="btn">Logout</a>
-        </div>
-    <?php else: ?>
-        <form action="<?= htmlspecialchars($homePath) ?>" method="get">
-            <button type="submit" class="btn secondary">&larr; Back to Dashboard</button>
-        </form>
-    <?php endif; ?>
+        <?php endif; ?>
+    </div>
 
     <section class="report-hero">
         <span class="eyebrow"><?= htmlspecialchars($heroEyebrow) ?></span>

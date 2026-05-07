@@ -91,81 +91,13 @@ mysqli_close($conn);
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard - <?= htmlspecialchars(bgi_app_name()) ?></title>
-    <style>
-        /* Reset some styles */
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: #f4f6f8;
-        }
-        .navbar {
-            background-color: #2E8B57;
-            padding: 15px 30px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            color: white;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
-        }
-        .navbar h1 {
-            font-size: 24px;
-        }
-        .navbar .logout {
-            background-color: #ff4d4d;
-            padding: 8px 15px;
-            border: none;
-            border-radius: 5px;
-            color: white;
-            text-decoration: none;
-            font-size: 14px;
-        }
-        .navbar .logout:hover {
-            background-color: #e60000;
-        }
-        .container {
-            max-width: 1100px;
-            margin: 40px auto;
-            padding: 20px;
-            background: white;
-            border-radius: 10px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-        }
-        .welcome {
-            text-align: center;
-            margin-bottom: 40px;
-            font-size: 22px;
-            color: #333;
-        }
-        .card-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 30px;
-        }
-        .card {
-            background-color: #2E8B57;
-            color: white;
-            padding: 30px;
-            border-radius: 10px;
-            text-align: center;
-            font-size: 20px;
-            text-decoration: none;
-            transition: background-color 0.3s ease;
-        }
-        .card:hover {
-            background-color: #246B46;
-        }
-    </style>
     <link rel="stylesheet" href="app.css">
 </head>
 <body class="app-page">
 
 <div class="navbar">
     <h1><?= htmlspecialchars(bgi_app_name()) ?></h1>
-    <a href="logout.php" class="logout">Logout</a>
+    <a href="logout.php" class="logout">Logout &rarr;</a>
 </div>
 
 <div class="dashboard-shell">

@@ -46,260 +46,20 @@ if (bgi_is_mohalla_admin()) {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Manage Events - <?= htmlspecialchars(bgi_app_name()) ?></title>
-    <style>
-        /* General reset and fonts */
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: #f4f6f8;
-        }
-        .navbar {
-            background-color: #2E8B57;
-            padding: 15px 30px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            color: white;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
-        }
-        .navbar h1 {
-            font-size: 24px;
-        }
-        .navbar .logout {
-            background-color: #ff4d4d;
-            padding: 8px 15px;
-            border: none;
-            border-radius: 5px;
-            color: white;
-            text-decoration: none;
-            font-size: 14px;
-        }
-        .navbar .logout:hover {
-            background-color: #e60000;
-        }
-        .container {
-            max-width: 1100px;
-            margin: 40px auto;
-            padding: 20px;
-            background: white;
-            border-radius: 10px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-        }
-        .header {
-            text-align: center;
-            margin-bottom: 40px;
-        }
-        .header h2 {
-            font-size: 24px;
-            color: #333;
-        }
-        .event-table {
-            width: 100%;
-            margin-top: 20px;
-            border-collapse: collapse;
-        }
-        .event-table th, .event-table td {
-            padding: 12px;
-            text-align: left;
-            border-bottom: 1px solid #ddd;
-        }
-        .event-table th {
-            background-color: #2E8B57;
-            color: white;
-        }
-        .event-table td {
-            background-color: #f9f9f9;
-        }
-        .event-table td a {
-            color: #2E8B57;
-            text-decoration: none;
-            font-weight: bold;
-        }
-        .event-table td a:hover {
-            text-decoration: underline;
-        }
-        .add-event-btn {
-            background-color: #2E8B57;
-            color: white;
-            padding: 10px 20px;
-            font-size: 16px;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            margin-bottom: 20px;
-            text-align: center;
-            display: block;
-            width: 200px;
-            margin: 20px auto;
-        }
-        .add-event-btn:hover {
-            background-color: #246B46;
-        }
-    </style>
+    <link rel="stylesheet" href="app.css">
 </head>
 <body class="app-page page-table">
 
-<div class="navbar">
-    <h1><?= htmlspecialchars(bgi_app_name()) ?></h1>
-    <a href="logout.php" class="logout">Logout</a>
+<div class="topbar">
+    <div><strong><?= htmlspecialchars(bgi_app_name()) ?></strong></div>
+    <div>
+        <a href="dashboard.php" class="back">← Dashboard</a>
+        <a href="logout.php" class="logout" style="margin-left:8px;">Logout</a>
+    </div>
 </div>
-
-<style>
-  .container {
-    max-width: 900px;
-    margin: 40px auto;
-    background: #fff;
-    padding: 25px 30px;
-    box-shadow: 0 0 15px rgba(0,0,0,0.1);
-    border-radius: 8px;
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-  }
-
-  /* First row: title centered */
-  .title-row {
-    text-align: center;
-    margin-bottom: 20px;
-  }
-  .title-row h2 {
-    color: #2E8B57;
-    font-weight: 700;
-    font-size: 32px;
-    margin: 0;
-  }
-
-  /* Second row: flex container with back button left, add event right */
-  .action-row {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 25px;
-  }
-
-  .action-row form, .action-row .add-event-btn {
-    margin: 0;
-  }
-
-  .action-row form button,
-  .action-row .add-event-btn {
-    background: #2E8B57;
-    color: white;
-    padding: 10px 22px;
-    border: none;
-    cursor: pointer;
-    font-size: 16px;
-    border-radius: 5px;
-    font-weight: 600;
-    transition: background-color 0.3s ease;
-    text-decoration: none;
-  }
-  .action-row form button:hover,
-  .action-row .add-event-btn:hover {
-    background: #246B46;
-  }
-
-  /* Event Details heading */
-  .event-details {
-    font-size: 20px;
-    font-weight: 600;
-    color: #333;
-    margin-bottom: 15px;
-  }
-
-  /* Table styling */
-  .event-table {
-    width: 100%;
-    border-collapse: collapse;
-  }
-
-  .event-table th, .event-table td {
-    border: 1px solid #ddd;
-    padding: 12px 15px;
-    text-align: left;
-  }
-
-  .event-table th {
-    background-color: #2E8B57;
-    color: white;
-    font-weight: 600;
-  }
-
-  .event-table tbody tr:nth-child(even) {
-    background-color: #f9f9f9;
-  }
-
-  .event-table tbody tr:hover {
-    background-color: #e6f2e6;
-  }
-
-  .flash-message {
-    padding: 12px 14px;
-    border-radius: 6px;
-    margin-bottom: 20px;
-  }
-
-  .flash-message.success {
-    background: #e6f4ea;
-    color: #0f5132;
-    border: 1px solid #c7eed1;
-  }
-
-  .flash-message.error {
-    background: #fdecea;
-    color: #842029;
-    border: 1px solid #f5c2c7;
-  }
-
-  .actions {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-  }
-
-  .actions form {
-    display: inline;
-    margin: 0;
-  }
-
-  .link-button {
-    background: none;
-    border: none;
-    padding: 0;
-    color: #2E8B57;
-    cursor: pointer;
-    font: inherit;
-    font-weight: bold;
-    text-decoration: underline;
-  }
-
-  .link-button:hover {
-    color: #246B46;
-  }
-
-  /* Responsive adjustments */
-  @media (max-width: 600px) {
-    .action-row {
-      flex-direction: column;
-      gap: 12px;
-      align-items: stretch;
-    }
-
-    .action-row form button,
-    .action-row .add-event-btn {
-      width: 100%;
-      text-align: center;
-      padding: 12px 0;
-    }
-  }
-</style>
-<link rel="stylesheet" href="app.css">
 
 <div class="container">
 
-  <!-- First row: Title -->
   <div class="title-row">
     <h2>Manage Events</h2>
     <p class="page-intro">
@@ -309,17 +69,9 @@ if (bgi_is_mohalla_admin()) {
     </p>
   </div>
 
-  <!-- Second row: Back and Add buttons -->
   <div class="action-row">
-    <form action="dashboard.php" method="get">
-      <button type="submit">&larr; Back to Dashboard</button>
-    </form>
-    <a href="add_event.php" class="add-event-btn">Add New Event</a>
-  </div>
-
-  <!-- Event details heading -->
-  <div class="event-details">
-    Event Details
+    <a href="dashboard.php" class="btn secondary">← Back to Dashboard</a>
+    <a href="add_event.php" class="btn">Add New Event</a>
   </div>
 
   <?php if ($flashMessage !== ''): ?>

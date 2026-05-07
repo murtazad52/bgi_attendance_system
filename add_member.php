@@ -207,11 +207,10 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                     $insertStmt->close();
                     $bgiStmt->close();
                     $itsStmt->close();
-                    echo "<script>
-                            alert('Member Created Successfully');
-                            window.location.href = 'admin_members.php';
-                          </script>";
-                    exit();
+                    bgi_set_flash('Member created successfully.', 'success');
+                    mysqli_close($conn);
+                    header('Location: admin_members.php');
+                    exit;
                 }
 
                 $error = "Error adding member: " . $insertStmt->error;
@@ -231,24 +230,18 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Add Member & Import Members</title>
-    <style>
-        body { font-family: Arial, sans-serif; background: #f4f6f8; padding: 20px; }
-        .form-container { background: white; max-width: 600px; margin: 20px auto; padding: 30px; border-radius: 10px; box-shadow: 0 0 10px #ccc; }
-        .form-container h2 { text-align: center; margin-bottom: 20px; }
-        .form-group { margin-bottom: 15px; }
-        label { display: block; margin-bottom: 5px; }
-        input[type="text"], input[type="email"], input[type="file"] { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 5px; }
-        .btn { background: #2E8B57; color: white; padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer; }
-        .btn:hover { background: #246B46; }
-        .back-btn { display: inline-block; margin-bottom: 20px; }
-        hr { margin: 40px 0; border: none; border-top: 1px solid #ddd; }
-    </style>
+    <title>Add Member & Import Members - <?= htmlspecialchars(bgi_app_name()) ?></title>
     <link rel="stylesheet" href="app.css">
 </head>
 <body class="app-page">
 
-<a href="dashboard.php" class="btn back-btn">Back to Dashboard</a>
+<div class="topbar">
+    <div><strong><?= htmlspecialchars(bgi_app_name()) ?></strong></div>
+    <div>
+        <a href="admin_members.php" class="back">← Manage Members</a>
+        <a href="logout.php" class="logout" style="margin-left:8px;">Logout</a>
+    </div>
+</div>
 
 <div class="form-container" id="member-import">
     <h2>Import Members via CSV</h2>

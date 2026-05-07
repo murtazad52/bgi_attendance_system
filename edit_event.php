@@ -105,39 +105,25 @@ $conn->close();
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Edit Event</title>
-    <style>
-        body { font-family: Arial, sans-serif; background: #f4f6f8; }
-        .container { max-width: 500px; margin: 50px auto; background: white; padding: 30px; border-radius: 10px; }
-        h2 { text-align: center; }
-        form { margin-top: 20px; }
-        input[type="text"], input[type="date"], input[type="time"] {
-            width: 100%; padding: 10px; margin-bottom: 20px; border-radius: 5px; border: 1px solid #ccc;
-        }
-        button {
-            width: 100%; background: #2E8B57; color: white; padding: 10px; border: none; border-radius: 5px;
-        }
-        button:hover { background: #246B46; }
-        .error-message {
-            color: #842029;
-            background: #fdecea;
-            border: 1px solid #f5c2c7;
-            padding: 10px 12px;
-            border-radius: 6px;
-            margin-bottom: 15px;
-        }
-    </style>
+    <title>Edit Event - <?= htmlspecialchars(bgi_app_name()) ?></title>
     <link rel="stylesheet" href="app.css">
 </head>
 <body class="app-page page-form">
 
+<div class="topbar">
+    <div><strong><?= htmlspecialchars(bgi_app_name()) ?></strong></div>
+    <div>
+        <a href="admin_events.php" class="back">← Manage Events</a>
+        <a href="logout.php" class="logout" style="margin-left:8px;">Logout</a>
+    </div>
+</div>
+
 <div class="container">
-    <a href="admin_events.php" class="btn secondary back-btn">Back to Manage Events</a>
     <h2>Edit Event</h2>
     <p class="page-intro">Adjust event details while keeping the attendance workflow unchanged.</p>
 
     <?php if ($error !== ''): ?>
-        <div class="error-message"><?php echo htmlspecialchars($error); ?></div>
+        <div class="message error"><?php echo htmlspecialchars($error); ?></div>
     <?php endif; ?>
 
     <form method="post">

@@ -569,8 +569,26 @@ tbody tr:hover td {
 }
 
 .status-badge {
-    min-width: 116px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 110px;
+    padding: 7px 12px;
+    border-radius: 999px;
+    font-weight: 700;
+    font-size: 0.88rem;
 }
+
+.status-badge.ontime { background: #dcfce7; color: #166534; }
+.status-badge.late { background: #ffedd5; color: #c2410c; }
+.status-badge.absent { background: #fee2e2; color: #b91c1c; }
+.status-badge.out-of-kuwait { background: #cffafe; color: #155e75; }
+
+.summary-total { background: #eff6ff; border-top-color: #2563eb; color: #1d4ed8; }
+.summary-late { background: #fff7ed; border-top-color: #f59e0b; color: #b45309; }
+.summary-absent { background: #fef2f2; border-top-color: #dc2626; color: #b91c1c; }
+.summary-out { background: #ecfeff; border-top-color: #0891b2; color: #0f766e; }
+.summary-time { background: #f8fafc; border-top-color: #475569; color: #334155; }
 
 .summary {
     display: flex;
@@ -1042,5 +1060,149 @@ body.app-page.page-form {
     th,
     td {
         padding: 12px 13px;
+    }
+}
+
+/* ─── Admin Role & Access Chips ─────────────────────────────────────── */
+.role-chip,
+.access-chip {
+    display: inline-flex;
+    align-items: center;
+    padding: 6px 12px;
+    border-radius: 999px;
+    font-size: 0.84rem;
+    font-weight: 800;
+    letter-spacing: 0.02em;
+}
+
+.role-super { background: #efe7ff; color: #6b21a8; }
+.role-admin { background: #e6f6ec; color: #0f5132; }
+.role-mohalla { background: #eef4ff; color: #1d4ed8; }
+.role-attendance { background: #fff3df; color: #b45309; }
+.access-chip { background: #edf7f1; color: #176b53; }
+
+.protected-note {
+    color: var(--muted);
+    font-size: 0.86rem;
+    font-weight: 700;
+}
+
+/* ─── Scope Preview ─────────────────────────────────────────────────── */
+.scope-preview {
+    background: #f4f8f6;
+    border: 1px solid #d6e7dd;
+    border-radius: 12px;
+    color: #264d39;
+    margin-bottom: 18px;
+    padding: 12px 14px;
+}
+
+/* ─── Monthly Reports ───────────────────────────────────────────────── */
+.monthly-filter-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+    gap: 16px 18px;
+    align-items: end;
+}
+
+.monthly-filter-grid .filter-field,
+.monthly-send-bar .send-field {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    min-width: 0;
+}
+
+.monthly-filter-grid .filter-field label,
+.monthly-send-bar .send-field label {
+    margin: 0;
+    font-size: 0.92rem;
+    font-weight: 800;
+    color: #214338;
+}
+
+.monthly-filter-grid .filter-field select {
+    width: 100%;
+    max-width: none;
+    min-width: 0;
+}
+
+.monthly-filter-grid .filter-actions {
+    display: flex;
+    align-items: end;
+}
+
+.monthly-filter-grid .filter-actions .btn {
+    width: 100%;
+    justify-content: center;
+}
+
+.monthly-send-bar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 14px 18px;
+    margin-top: 18px;
+    padding-top: 18px;
+    border-top: 1px solid rgba(23, 107, 83, 0.12);
+}
+
+.monthly-send-bar .checkbox-inline {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    font-weight: 700;
+    color: #23463a;
+}
+
+.monthly-send-bar .checkbox-inline input {
+    margin: 0;
+}
+
+.monthly-send-bar .btn {
+    min-width: 220px;
+    justify-content: center;
+}
+
+.status-pill {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 116px;
+    padding: 8px 12px;
+    border-radius: 999px;
+    font-size: 0.88rem;
+    font-weight: 800;
+    background: #edf7f1;
+}
+
+.status-pill.ontime { background: #dcfce7; color: #166534; }
+.status-pill.late { background: #fff3df; color: #b45309; }
+.status-pill.absent { background: #fde9eb; color: #842029; }
+.status-pill.out-of-kuwait { background: #e1f8f5; color: #0f766e; }
+
+.code-block {
+    margin-top: 14px;
+    padding: 14px 16px;
+    border-radius: 18px;
+    background: #12362d;
+    color: #f7f0cf;
+    font-family: Consolas, "Courier New", monospace;
+    font-size: 0.94rem;
+    overflow-x: auto;
+}
+
+@media (max-width: 760px) {
+    .monthly-filter-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .monthly-send-bar {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .monthly-send-bar .btn {
+        width: 100%;
     }
 }

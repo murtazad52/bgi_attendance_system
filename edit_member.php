@@ -321,30 +321,24 @@ $conn->close();
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Edit Member - <?= htmlspecialchars(bgi_app_name()) ?></title>
-    <style>
-        body { font-family: Arial, sans-serif; background: #f4f6f8; padding: 20px; }
-        .form-container { background: white; max-width: 600px; margin: 20px auto; padding: 30px; border-radius: 10px; box-shadow: 0 0 10px #ccc; }
-        .form-container h2 { text-align: center; margin-bottom: 20px; }
-        .form-group { margin-bottom: 15px; }
-        label { display: block; margin-bottom: 5px; }
-        input[type="text"], input[type="email"] { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 5px; box-sizing: border-box; }
-        .btn { background: #2E8B57; color: white; padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer; }
-        .btn:hover { background: #246B46; }
-        .back-btn { display: inline-block; margin-bottom: 20px; text-decoration: none; }
-        .error-message { color: #842029; background: #fdecea; border: 1px solid #f5c2c7; padding: 10px 12px; border-radius: 6px; margin-bottom: 15px; }
-    </style>
     <link rel="stylesheet" href="app.css">
 </head>
 <body class="app-page">
 
-<a href="admin_members.php" class="btn back-btn">Back to Members</a>
+<div class="topbar">
+    <div><strong><?= htmlspecialchars(bgi_app_name()) ?></strong></div>
+    <div>
+        <a href="admin_members.php" class="back">← Manage Members</a>
+        <a href="logout.php" class="logout" style="margin-left:8px;">Logout</a>
+    </div>
+</div>
 
 <div class="form-container">
     <h2>Edit Member</h2>
     <p class="page-intro">Update member identity and contact information without leaving the admin workspace.</p>
 
     <?php if ($error !== ''): ?>
-        <div class="error-message"><?= htmlspecialchars($error) ?></div>
+        <div class="message error"><?= htmlspecialchars($error) ?></div>
     <?php endif; ?>
 
     <form method="POST">

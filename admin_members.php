@@ -53,46 +53,19 @@ if (bgi_is_mohalla_admin()) {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Manage Members - <?= htmlspecialchars(bgi_app_name()) ?></title>
-    <style>
-        body { font-family: Arial, sans-serif; background: #f4f6f8; margin: 0; padding: 0; }
-        .navbar { background: #2E8B57; padding: 15px 30px; display: flex; justify-content: space-between; color: white; }
-        .navbar h1 { font-size: 24px; }
-        .navbar a.logout { background: #ff4d4d; padding: 8px 15px; border-radius: 5px; color: white; text-decoration: none; }
-        .container { max-width: 1100px; margin: 40px auto; background: white; padding: 20px; border-radius: 10px; }
-        .header { text-align: center; margin-bottom: 30px; }
-        .header-actions { display: flex; justify-content: center; flex-wrap: wrap; gap: 12px; margin-top: 16px; }
-        .btn { display: inline-block; background: #2E8B57; color: white; padding: 10px 20px; margin-bottom: 20px; text-decoration: none; border-radius: 5px; }
-        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
-        table th, table td { border: 1px solid #ccc; padding: 10px; text-align: left; }
-        table th { background: #2E8B57; color: white; }
-        table tr:nth-child(even) { background: #f9f9f9; }
-        .flash-message { padding: 12px 14px; border-radius: 6px; margin-bottom: 20px; }
-        .flash-message.success { background: #e6f4ea; color: #0f5132; border: 1px solid #c7eed1; }
-        .flash-message.error { background: #fdecea; color: #842029; border: 1px solid #f5c2c7; }
-        .actions { display: flex; align-items: center; gap: 8px; }
-        .actions form { display: inline; margin: 0; }
-        .link-button {
-            background: none;
-            border: none;
-            padding: 0;
-            color: #0d6efd;
-            cursor: pointer;
-            font: inherit;
-            text-decoration: underline;
-        }
-        .link-button:hover { color: #0a58ca; }
-    </style>
     <link rel="stylesheet" href="app.css">
 </head>
 <body class="app-page page-table">
 
-<div class="navbar">
-    <h1><?= htmlspecialchars(bgi_app_name()) ?></h1>
-    <a href="logout.php" class="logout">Logout</a>
+<div class="topbar">
+    <div><strong><?= htmlspecialchars(bgi_app_name()) ?></strong></div>
+    <div>
+        <a href="dashboard.php" class="back">← Dashboard</a>
+        <a href="logout.php" class="logout" style="margin-left:8px;">Logout</a>
+    </div>
 </div>
 
 <div class="container">
-    <a href="dashboard.php" class="btn">Back to Dashboard</a>
     <div class="header">
         <h2>Manage Members</h2>
         <p class="page-intro">

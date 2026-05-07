@@ -192,77 +192,19 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Add New Event - <?= htmlspecialchars(bgi_app_name()) ?></title>
-    <style>
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: #f4f6f8;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-        }
-        .form-container {
-            background: white;
-            padding: 30px;
-            border-radius: 10px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-            width: 400px;
-        }
-        .form-container h2 {
-            text-align: center;
-            margin-bottom: 25px;
-            color: #2E8B57;
-        }
-        form label {
-            display: block;
-            margin-bottom: 8px;
-            color: #333;
-        }
-        form input[type="text"],
-        form input[type="date"],
-        form input[type="time"] {
-            width: 100%;
-            padding: 10px;
-            margin-bottom: 20px;
-            border: 1px solid #ccc;
-            border-radius: 5px;
-        }
-        .btn-submit {
-            width: 100%;
-            background-color: #2E8B57;
-            color: white;
-            padding: 12px;
-            font-size: 16px;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-        }
-        .btn-submit:hover {
-            background-color: #246B46;
-        }
-        .back-link {
-            display: block;
-            margin-top: 15px;
-            text-align: center;
-            color: #2E8B57;
-            text-decoration: none;
-            font-weight: bold;
-        }
-        .back-link:hover {
-            text-decoration: underline;
-        }
-        .error-message {
-            color: red;
-            text-align: center;
-            margin-bottom: 15px;
-        }
-    </style>
     <link rel="stylesheet" href="app.css">
 </head>
 <body class="app-page page-form">
 
+<div class="topbar">
+    <div><strong><?= htmlspecialchars(bgi_app_name()) ?></strong></div>
+    <div>
+        <a href="admin_events.php" class="back">← Manage Events</a>
+        <a href="logout.php" class="logout" style="margin-left:8px;">Logout</a>
+    </div>
+</div>
+
 <div class="form-container">
-    <a href="admin_events.php" class="btn secondary back-btn">Back to Manage Events</a>
     <h2>Add New Event</h2>
     <p class="page-intro">
         <?= $isPairScopedAdmin
@@ -273,8 +215,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     </p>
 
     <?php
-    if (isset($error)) {
-        echo '<div class="error-message">' . htmlspecialchars($error) . '</div>';
+    if (isset($error) && $error !== '') {
+        echo '<div class="message error">' . htmlspecialchars($error) . '</div>';
     }
     ?>
 
@@ -339,7 +281,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         <label for="reporting_time">Reporting Time:</label>
         <input type="time" id="reporting_time" name="reporting_time" value="<?= htmlspecialchars($_POST['reporting_time'] ?? '') ?>" required>
 
-        <button type="submit" class="btn-submit">Add Event</button>
+        <button type="submit" class="btn">Add Event</button>
     </form>
 
 </div>

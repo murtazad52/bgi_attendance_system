@@ -53,17 +53,7 @@ if (!$event_id) {
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Select Event</title>
-        <style>
-            body { font-family: 'Segoe UI', sans-serif; background: #f4f6f9; padding: 30px; color: #333; }
-            .container { max-width: 600px; margin: auto; background: #fff; padding: 25px; border-radius: 12px; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
-            h2 { text-align: center; margin-bottom: 25px; }
-            label, select, button { display: block; width: 100%; margin-bottom: 15px; font-size: 16px; }
-            select, button { padding: 10px; border-radius: 6px; border: 1px solid #ccc; }
-            button { background: #007BFF; color: white; border: none; cursor: pointer; }
-            button:hover { background: #0056b3; }
-            .back-link { display: block; text-align: center; margin-top: 15px; text-decoration: none; color: #007BFF; }
-        </style>
+        <title>Select Event - <?= htmlspecialchars(bgi_app_name()) ?></title>
         <link rel="stylesheet" href="app.css">
     </head>
     <body class="app-page page-form">
@@ -79,18 +69,22 @@ if (!$event_id) {
                     : 'Choose one event to open the attendance breakdown and status summary.' ?>
             </p>
             <form method="GET">
-                <label for="event_id">Choose Event:</label>
-                <select name="event_id" id="event_id" required>
-                    <option value="">-- Select Event --</option>
-                    <?php foreach ($eventsList as $eventOption): ?>
-                        <option value="<?= (int) $eventOption['id'] ?>">
-                            <?= htmlspecialchars(($eventOption['event_code'] ?? '') . ' - ' . $eventOption['event_name'] . ' (' . ($eventOption['idara'] ?? BGI_DEFAULT_IDARA) . ' / ' . ($eventOption['mohalla'] ?? BGI_DEFAULT_MOHALLA) . ')') ?>
-                        </option>
-                    <?php endforeach; ?>
-                </select>
-                <button type="submit">View Report</button>
+                <div class="form-group">
+                    <label for="event_id">Choose Event</label>
+                    <select name="event_id" id="event_id" required>
+                        <option value="">-- Select Event --</option>
+                        <?php foreach ($eventsList as $eventOption): ?>
+                            <option value="<?= (int) $eventOption['id'] ?>">
+                                <?= htmlspecialchars(($eventOption['event_code'] ?? '') . ' - ' . $eventOption['event_name'] . ' (' . ($eventOption['idara'] ?? BGI_DEFAULT_IDARA) . ' / ' . ($eventOption['mohalla'] ?? BGI_DEFAULT_MOHALLA) . ')') ?>
+                            </option>
+                        <?php endforeach; ?>
+                    </select>
+                </div>
+                <div class="form-actions">
+                    <button type="submit" class="btn">View Report</button>
+                    <a href="<?= htmlspecialchars($homePath) ?>" class="btn secondary"><?= htmlspecialchars($backLabel) ?></a>
+                </div>
             </form>
-            <a href="<?= htmlspecialchars($homePath) ?>" class="back-link"><?= htmlspecialchars($backLabel) ?></a>
         </div>
     </body>
     </html>
@@ -382,69 +376,17 @@ mysqli_close($conn);
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Event Report</title>
-    <style>
-        body { font-family: 'Segoe UI', sans-serif; background: #f0f2f5; padding: 20px; color: #333; }
-        .container { max-width: 1200px; margin: auto; background: #fff; padding: 30px; border-radius: 12px; box-shadow: 0 0 12px rgba(0,0,0,0.1); }
-        h2 { margin-bottom: 20px; color: #007BFF; }
-        .summary { display: flex; flex-wrap: wrap; gap: 15px; margin-bottom: 30px; }
-        .summary-card { padding: 20px; border-radius: 12px; text-align: center; flex: 1 1 160px; box-shadow: 0 6px 16px rgba(15,23,42,0.08); border-top: 5px solid transparent; }
-        .summary-label { display: block; font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 8px; }
-        .summary-value { display: block; font-size: 26px; font-weight: 800; }
-        .summary-total { background: #eff6ff; border-top-color: #2563eb; color: #1d4ed8; }
-        .summary-ontime { background: #ecfdf5; border-top-color: #16a34a; color: #166534; }
-        .summary-late { background: #fff7ed; border-top-color: #f59e0b; color: #b45309; }
-        .summary-absent { background: #fef2f2; border-top-color: #dc2626; color: #b91c1c; }
-        .summary-out { background: #ecfeff; border-top-color: #0891b2; color: #0f766e; }
-        .summary-time { background: #f8fafc; border-top-color: #475569; color: #334155; }
-        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-        th, td { padding: 12px 15px; border: 1px solid #dee2e6; text-align: center; }
-        th { background: #007BFF; color: white; }
-        tr:nth-child(even) { background: #f8f9fa; }
-        tr:hover { background: #eef6ff; }
-        .back-link { margin-top: 20px; display: inline-block; background: #6c757d; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; }
-        .status-badge { display: inline-block; min-width: 110px; padding: 7px 12px; border-radius: 999px; font-weight: 700; }
-        .status-badge.ontime { background: #dcfce7; color: #166534; }
-        .status-badge.late { background: #ffedd5; color: #c2410c; }
-        .status-badge.absent { background: #fee2e2; color: #b91c1c; }
-        .status-badge.out-of-kuwait { background: #cffafe; color: #155e75; }
-        form.filter-form {
-            margin-bottom: 20px;
-        }
-        form.filter-form input[type="text"], form.filter-form select {
-            padding: 8px;
-            font-size: 16px;
-            margin-right: 15px;
-            border: 1px solid #ccc;
-            border-radius: 5px;
-            width: 200px;
-        }
-        form.filter-form button {
-            padding: 8px 16px;
-            background: #007BFF;
-            color: #fff;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-        }
-        form.filter-form button:hover {
-            background: #0056b3;
-        }
-    </style>
+    <title>Event Report - <?= htmlspecialchars(bgi_app_name()) ?></title>
     <link rel="stylesheet" href="app.css">
 </head>
 <body class="app-page page-table">
     <div class="page-shell">
-        <?php if ($isMemberView): ?>
-            <div class="hero-actions">
-                <a href="<?= htmlspecialchars($homePath) ?>" class="btn secondary">&larr; <?= htmlspecialchars($backLabel) ?></a>
+        <div class="hero-actions">
+            <a href="<?= htmlspecialchars($homePath) ?>" class="btn secondary">&larr; <?= htmlspecialchars($backLabel) ?></a>
+            <?php if ($isMemberView): ?>
                 <a href="logout.php" class="btn">Logout</a>
-            </div>
-        <?php else: ?>
-            <form action="<?= htmlspecialchars($homePath) ?>" method="get">
-                <button type="submit" class="btn secondary">&larr; <?= htmlspecialchars($backLabel) ?></button>
-            </form>
-        <?php endif; ?>
+            <?php endif; ?>
+        </div>
 
         <section class="report-hero">
             <span class="eyebrow"><?= htmlspecialchars($heroEyebrow) ?></span>

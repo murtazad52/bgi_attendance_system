@@ -211,93 +211,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Create Admin - <?= htmlspecialchars(bgi_app_name()) ?></title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            background: #f4f6f8;
-            margin: 0;
-            padding: 20px;
-        }
-        .container {
-            max-width: 620px;
-            margin: 40px auto;
-            background: #fff;
-            padding: 30px;
-            border-radius: 10px;
-            box-shadow: 0 0 12px rgba(0,0,0,0.1);
-        }
-        h2 {
-            margin-top: 0;
-            text-align: center;
-            color: #2E8B57;
-        }
-        label {
-            display: block;
-            margin-bottom: 6px;
-            font-weight: 600;
-        }
-        input[type="text"],
-        input[type="password"],
-        select {
-            width: 100%;
-            padding: 10px;
-            margin-bottom: 18px;
-            border: 1px solid #ccc;
-            border-radius: 5px;
-            box-sizing: border-box;
-        }
-        .btn {
-            display: inline-block;
-            background: #2E8B57;
-            color: white;
-            padding: 10px 18px;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            text-decoration: none;
-            font-size: 15px;
-        }
-        .btn:hover {
-            background: #246B46;
-        }
-        .back-link {
-            margin-bottom: 20px;
-        }
-        .message {
-            padding: 10px 12px;
-            border-radius: 6px;
-            margin-bottom: 16px;
-        }
-        .success {
-            background: #e6f4ea;
-            color: #0f5132;
-            border: 1px solid #c7eed1;
-        }
-        .error {
-            background: #fdecea;
-            color: #842029;
-            border: 1px solid #f5c2c7;
-        }
-        .help {
-            color: #666;
-            font-size: 14px;
-            margin-top: -10px;
-            margin-bottom: 18px;
-        }
-        .scope-preview {
-            background: #f4f8f6;
-            border: 1px solid #d6e7dd;
-            border-radius: 6px;
-            color: #264d39;
-            margin-bottom: 18px;
-            padding: 12px 14px;
-        }
-    </style>
     <link rel="stylesheet" href="app.css">
 </head>
 <body class="app-page page-form">
+
+<div class="topbar">
+    <div><strong><?= htmlspecialchars(bgi_app_name()) ?></strong></div>
+    <div>
+        <a href="dashboard.php" class="back">← Dashboard</a>
+        <a href="logout.php" class="logout" style="margin-left:8px;">Logout</a>
+    </div>
+</div>
+
     <div class="container">
-        <a href="dashboard.php" class="btn secondary back-link">Back to Dashboard</a>
         <h2>Create Admin User</h2>
         <p class="page-intro">Create scoped admin accounts by role. The main <strong>admin</strong> account remains the only super admin with global access.</p>
 

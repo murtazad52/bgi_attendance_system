@@ -126,18 +126,7 @@ $memberSummaryCount = count($member_rows);
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Attendance Reports</title>
-    <style>
-        body { font-family: Arial; background: #f4f6f8; padding: 20px; }
-        .container { background: white; padding: 20px; border-radius: 10px; margin-bottom: 30px; }
-        h2 { margin-bottom: 10px; }
-        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
-        th, td { border: 1px solid #ccc; padding: 8px; text-align: left; }
-        th { background-color: #2E8B57; color: white; }
-        .filter-form { margin-bottom: 20px; }
-        .btn { padding: 8px 15px; background: #2E8B57; color: white; text-decoration: none; border-radius: 5px; }
-        .btn:hover { background: #246B46; }
-    </style>
+    <title>Attendance Reports - <?= htmlspecialchars(bgi_app_name()) ?></title>
     <link rel="stylesheet" href="app.css">
 </head>
 <body class="app-page page-table">

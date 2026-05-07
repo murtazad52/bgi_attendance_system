@@ -63,52 +63,17 @@ if ($isScopedAdmin) {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>View Attendance - <?= htmlspecialchars(bgi_app_name()) ?></title>
-    <style>
-        /* Styles */
-        body {
-            font-family: Arial, sans-serif;
-            background-color: #f4f6f8;
-            padding: 20px;
-        }
-        .container {
-            max-width: 1000px;
-            margin: 0 auto;
-            padding: 20px;
-            background-color: white;
-            border-radius: 10px;
-            box-shadow: 0 0 10px rgba(0,0,0,0.1);
-        }
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 20px;
-        }
-        th, td {
-            padding: 12px;
-            border: 1px solid #ddd;
-            text-align: left;
-        }
-        th {
-            background-color: #2E8B57;
-            color: white;
-        }
-        .back-btn {
-            background-color: #2E8B57;
-            color: white;
-            padding: 10px 20px;
-            border-radius: 5px;
-            text-decoration: none;
-            margin-bottom: 20px;
-        }
-        .back-btn:hover {
-            background-color: #246B46;
-        }
-    </style>
     <link rel="stylesheet" href="app.css">
 </head>
 <body class="app-page page-table">
 
-<a href="dashboard.php" class="back-btn">Back to Dashboard</a>
+<div class="topbar">
+    <div><strong><?= htmlspecialchars(bgi_app_name()) ?></strong></div>
+    <div>
+        <a href="dashboard.php" class="back">← Dashboard</a>
+        <a href="logout.php" class="logout" style="margin-left:8px;">Logout</a>
+    </div>
+</div>
 
 <div class="container">
     <h2>Attendance Records</h2>

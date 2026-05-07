@@ -93,54 +93,6 @@ $conn->close();
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Login - <?= htmlspecialchars(bgi_app_name()) ?></title>
-    <style>
-        /* Beautified login form */
-        body {
-            font-family: Arial, sans-serif;
-            background-color: #f0f2f5;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-        }
-        .login-container {
-            background-color: white;
-            padding: 30px 40px;
-            border-radius: 8px;
-            box-shadow: 0 0 10px rgba(0,0,0,0.2);
-            width: 300px;
-        }
-        .login-container h2 {
-            margin-bottom: 20px;
-            text-align: center;
-            color: #4CAF50;
-        }
-        .login-container input[type="text"],
-        .login-container input[type="password"] {
-            width: 100%;
-            padding: 12px;
-            margin: 8px 0 16px 0;
-            border: 1px solid #ccc;
-            border-radius: 4px;
-        }
-        .login-container input[type="submit"] {
-            width: 100%;
-            padding: 12px;
-            background-color: #4CAF50;
-            border: none;
-            color: white;
-            border-radius: 4px;
-            cursor: pointer;
-        }
-        .login-container input[type="submit"]:hover {
-            background-color: #45a049;
-        }
-        .error {
-            color: red;
-            text-align: center;
-            margin-bottom: 10px;
-        }
-    </style>
     <link rel="stylesheet" href="app.css">
 </head>
 <body class="login-page">
@@ -150,7 +102,7 @@ $conn->close();
     <h2>Portal Login</h2>
     <p class="login-subtitle">Super Admin, Idara Admin, Idara Attendance Admin, and Mohalla Admin sign in here with their assigned access scope, while members, Team Leaders, and Captains sign in through the member portal using ITS ID and phone.</p>
 
-    <?php if (isset($error)) { echo '<div class="error">' . $error . '</div>'; } ?>
+    <?php if ($error !== '') { echo '<div class="error">' . htmlspecialchars($error) . '</div>'; } ?>
 
     <form method="POST" action="">
         <label for="login_type">Login As</label>
