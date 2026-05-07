@@ -14,6 +14,7 @@ if (!bgi_can_manage_events()) {
 }
 
 $scopeOptions = bgi_get_scope_options($conn);
+$savedLocations = bgi_get_event_locations($conn);
 $selectedIdara = $isPairScopedAdmin ? bgi_current_scope_idara() : '';
 $selectedMohalla = $isScopedAdmin ? bgi_current_scope_mohalla() : '';
 $idaraOptions = [];
@@ -302,8 +303,37 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         <hr style="margin:1.5rem 0;border:none;border-top:1px solid #e5e7eb;">
         <h3 style="margin:0 0 0.25rem;font-size:1rem;">Geofence (Optional)</h3>
         <p style="margin:0 0 1rem;font-size:0.85rem;color:#666;">
-            Set a location and radius so the mobile app can detect remote check-ins when members are outside the event area.
+            Set a location so the mobile app can detect remote check-ins when members are outside the event area.
         </p>
+
+        <?php if ($savedLocations): ?>
+        <label for="saved_location_picker">Pick a Saved Location</label>
+        <select id="saved_location_picker" style="margin-bottom:0.75rem;">
+            <option value="">— Enter manually —</option>
+            <?php foreach ($savedLocations as $sl): ?>
+                <option value="<?= htmlspecialchars((string)(float)$sl['latitude']) ?>"
+                        data-lng="<?= htmlspecialchars((string)(float)$sl['longitude']) ?>"
+                        data-radius="<?= (int)$sl['radius_meters'] ?>">
+                    <?= htmlspecialchars($sl['name']) ?>
+                    (<?= htmlspecialchars($sl['idara'] . ' / ' . $sl['mohalla']) ?>)
+                </option>
+            <?php endforeach; ?>
+        </select>
+        <script>
+        document.getElementById('saved_location_picker').addEventListener('change', function () {
+            var opt = this.options[this.selectedIndex];
+            if (this.value) {
+                document.getElementById('latitude').value  = this.value;
+                document.getElementById('longitude').value = opt.dataset.lng;
+                document.getElementById('radius_meters').value = opt.dataset.radius;
+            } else {
+                document.getElementById('latitude').value  = '';
+                document.getElementById('longitude').value = '';
+                document.getElementById('radius_meters').value = '200';
+            }
+        });
+        </script>
+        <?php endif; ?>
 
         <div style="display:flex;gap:1rem;flex-wrap:wrap;">
             <div style="flex:1;min-width:160px;">
@@ -326,7 +356,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             </div>
         </div>
         <p style="font-size:0.8rem;color:#888;margin-top:0.5rem;">
-            Tip: Find coordinates on Google Maps by right-clicking the event venue location.
+            Find coordinates: right-click the venue on Google Maps and copy the numbers shown.
+            <a href="admin_locations.php" style="color:#176b53;">Manage saved locations →</a>
         </p>
 
         <button type="submit" class="btn">Add Event</button>

@@ -199,6 +199,7 @@ mysqli_close($conn);
         <div class="card-grid">
             <?php if ($canManageMembers): ?><a href="admin_members.php" class="card"><span class="card-title">Manage Members</span><small>Profiles, ITS numbers, and import tools.</small></a><?php endif; ?>
             <?php if ($canManageEvents): ?><a href="admin_events.php" class="card"><span class="card-title">Manage Events</span><small>Create schedules and maintain reporting times.</small></a><?php endif; ?>
+            <?php if ($canManageEvents): ?><a href="admin_locations.php" class="card"><span class="card-title">Saved Locations</span><small>Store venue coordinates for quick geofence setup on events.</small></a><?php endif; ?>
             <?php if ($canViewAdminDirectory): ?><a href="manage_admins.php" class="card"><span class="card-title">Manage Admins</span><small><?= bgi_is_super_admin() ? 'Review every admin account and control scope-based access.' : 'See admin accounts assigned to your visible scope only.' ?></small></a><?php endif; ?>
             <?php if ($canTakeAttendance): ?><a href="admin_attendance.php" class="card"><span class="card-title">Record Attendance</span><small>Fast entry for event-based attendance updates.</small></a><?php endif; ?>
             <?php if ($canViewAttendanceRecords): ?><a href="view_attendance.php" class="card"><span class="card-title">View Attendance</span><small>Browse the latest attendance history in one table.</small></a><?php endif; ?>

@@ -355,6 +355,57 @@ function bgi_generate_event_code(mysqli $conn, ?string $eventDate = null): strin
     return $candidate;
 }
 
+function bgi_ensure_locations_schema(mysqli $conn): void
+{
+    $conn->query(
+        "CREATE TABLE IF NOT EXISTS event_locations (
+            id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+            name VARCHAR(100) NOT NULL,
+            latitude DECIMAL(10,7) NOT NULL,
+            longitude DECIMAL(10,7) NOT NULL,
+            radius_meters INT UNSIGNED NOT NULL DEFAULT 200,
+            idara VARCHAR(100) NOT NULL DEFAULT 'BGI',
+            mohalla VARCHAR(100) NOT NULL DEFAULT 'Badri',
+            created_at TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP
+        )"
+    );
+}
+
+function bgi_get_event_locations(mysqli $conn): array
+{
+    bgi_ensure_locations_schema($conn);
+
+    if (bgi_is_super_admin()) {
+        $result = $conn->query(
+            "SELECT id, name, latitude, longitude, radius_meters, idara, mohalla
+             FROM event_locations ORDER BY name ASC"
+        );
+    } elseif (bgi_is_mohalla_admin()) {
+        $mohalla = $conn->real_escape_string(bgi_current_scope_mohalla());
+        $result = $conn->query(
+            "SELECT id, name, latitude, longitude, radius_meters, idara, mohalla
+             FROM event_locations WHERE mohalla = '$mohalla' ORDER BY name ASC"
+        );
+    } else {
+        $idara = $conn->real_escape_string(bgi_current_scope_idara());
+        $mohalla = $conn->real_escape_string(bgi_current_scope_mohalla());
+        $result = $conn->query(
+            "SELECT id, name, latitude, longitude, radius_meters, idara, mohalla
+             FROM event_locations WHERE idara = '$idara' AND mohalla = '$mohalla' ORDER BY name ASC"
+        );
+    }
+
+    if (!$result) {
+        return [];
+    }
+
+    $locations = [];
+    while ($row = $result->fetch_assoc()) {
+        $locations[] = $row;
+    }
+    return $locations;
+}
+
 function bgi_bootstrap_access_schema(mysqli $conn): void
 {
     static $checked = false;
@@ -368,6 +419,7 @@ function bgi_bootstrap_access_schema(mysqli $conn): void
     bgi_ensure_admin_role_schema($conn);
     bgi_ensure_scope_map_schema($conn);
     bgi_ensure_event_code_schema($conn);
+    bgi_ensure_locations_schema($conn);
     bgi_ensure_table_column($conn, 'admin_users', 'totp_secret', "VARCHAR(32) NULL DEFAULT NULL");
     bgi_ensure_table_column($conn, 'admin_users', 'totp_enabled', "TINYINT(1) NOT NULL DEFAULT 0");
     bgi_ensure_table_column($conn, 'events', 'latitude', "DECIMAL(10,7) NULL DEFAULT NULL");

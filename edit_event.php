@@ -110,6 +110,7 @@ $selectedMohalla = bgi_normalize_scope_value($event['mohalla'] ?? '', BGI_DEFAUL
 $eventLat = $event['latitude'] ?? '';
 $eventLng = $event['longitude'] ?? '';
 $eventRadius = $event['radius_meters'] ?? '200';
+$savedLocations = bgi_get_event_locations($conn);
 
 $conn->close();
 ?>
@@ -195,26 +196,55 @@ $conn->close();
         <p style="margin:0 0 1rem;font-size:0.85rem;color:#666;">
             Leave blank to remove the geofence, or set coordinates to flag remote check-ins on the mobile app.
         </p>
+
+        <?php if ($savedLocations): ?>
+        <label for="saved_location_picker">Pick a Saved Location</label>
+        <select id="saved_location_picker" style="margin-bottom:0.75rem;">
+            <option value="">— Keep current / enter manually —</option>
+            <?php foreach ($savedLocations as $sl): ?>
+                <option value="<?= htmlspecialchars((string)(float)$sl['latitude']) ?>"
+                        data-lng="<?= htmlspecialchars((string)(float)$sl['longitude']) ?>"
+                        data-radius="<?= (int)$sl['radius_meters'] ?>">
+                    <?= htmlspecialchars($sl['name']) ?>
+                    (<?= htmlspecialchars($sl['idara'] . ' / ' . $sl['mohalla']) ?>)
+                </option>
+            <?php endforeach; ?>
+        </select>
+        <script>
+        document.getElementById('saved_location_picker').addEventListener('change', function () {
+            var opt = this.options[this.selectedIndex];
+            if (this.value) {
+                document.getElementById('edit_latitude').value  = this.value;
+                document.getElementById('edit_longitude').value = opt.dataset.lng;
+                document.getElementById('edit_radius').value    = opt.dataset.radius;
+            }
+        });
+        </script>
+        <?php endif; ?>
+
         <div style="display:flex;gap:1rem;flex-wrap:wrap;">
             <div style="flex:1;min-width:160px;">
                 <label>Latitude</label>
-                <input type="number" name="latitude" step="0.0000001" min="-90" max="90"
+                <input type="number" id="edit_latitude" name="latitude" step="0.0000001" min="-90" max="90"
                        value="<?php echo htmlspecialchars($_POST['latitude'] ?? $eventLat); ?>"
                        placeholder="e.g. 29.3759">
             </div>
             <div style="flex:1;min-width:160px;">
                 <label>Longitude</label>
-                <input type="number" name="longitude" step="0.0000001" min="-180" max="180"
+                <input type="number" id="edit_longitude" name="longitude" step="0.0000001" min="-180" max="180"
                        value="<?php echo htmlspecialchars($_POST['longitude'] ?? $eventLng); ?>"
                        placeholder="e.g. 47.9774">
             </div>
             <div style="flex:1;min-width:120px;">
                 <label>Radius (meters)</label>
-                <input type="number" name="radius_meters" min="50" max="10000"
+                <input type="number" id="edit_radius" name="radius_meters" min="50" max="10000"
                        value="<?php echo htmlspecialchars($_POST['radius_meters'] ?? $eventRadius); ?>"
                        placeholder="200">
             </div>
         </div>
+        <p style="font-size:0.8rem;color:#888;margin-top:0.5rem;">
+            <a href="admin_locations.php" style="color:#176b53;">Manage saved locations →</a>
+        </p>
 
         <button type="submit">Update Event</button>
     </form>
