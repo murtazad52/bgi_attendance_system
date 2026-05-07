@@ -1,0 +1,13 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(git *)",
+      "Bash(xargs grep *)",
+      "Bash(gh auth *)",
+      "Bash(gh.exe auth *)",
+      "Bash(where gh *)",
+      "Bash(python -c \"import sys,json; d=json.load\\(sys.stdin\\); print\\(d.get\\('html_url'\\) or d.get\\('message','unknown error'\\)\\)\")",
+      "Bash(curl *)"
+    ]
+  }
+}

@@ -51,6 +51,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             : bgi_normalize_scope_value($_POST['mohalla'] ?? '', BGI_DEFAULT_MOHALLA);
     }
 
+    $geoLat = trim($_POST['latitude'] ?? '');
+    $geoLng = trim($_POST['longitude'] ?? '');
+    $geoRadius = trim($_POST['radius_meters'] ?? '');
+    $geoLatVal = $geoLat !== '' && is_numeric($geoLat) ? (float) $geoLat : null;
+    $geoLngVal = $geoLng !== '' && is_numeric($geoLng) ? (float) $geoLng : null;
+    $geoRadiusVal = $geoRadius !== '' && ctype_digit($geoRadius) ? (int) $geoRadius : 200;
+
     if ($event_name === '' || $event_date === '' || $reporting_time === '') {
         $error = 'All fields are required.';
     } elseif (!$isScopedAdmin && !isset($validScopePairs[$selectedIdara . '||' . $selectedMohalla])) {
@@ -58,8 +65,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     } elseif (!bgi_register_scope($conn, $selectedIdara, $selectedMohalla, $scopeError)) {
         $error = $scopeError ?: 'Invalid Idara and Mohalla mapping.';
     } else {
-        $updateStmt = $conn->prepare("UPDATE events SET event_name = ?, idara = ?, mohalla = ?, event_date = ?, reporting_time = ? WHERE id = ?");
-        $updateStmt->bind_param("sssssi", $event_name, $selectedIdara, $selectedMohalla, $event_date, $reporting_time, $id);
+        $updateStmt = $conn->prepare(
+            "UPDATE events SET event_name = ?, idara = ?, mohalla = ?, event_date = ?, reporting_time = ?,
+                    latitude = ?, longitude = ?, radius_meters = ?
+             WHERE id = ?"
+        );
+        $updateStmt->bind_param("sssssddii", $event_name, $selectedIdara, $selectedMohalla, $event_date, $reporting_time, $geoLatVal, $geoLngVal, $geoRadiusVal, $id);
 
         if ($updateStmt->execute()) {
             $updateStmt->close();
@@ -96,6 +107,9 @@ if ($isScopedAdmin && !bgi_scope_matches_current($event['idara'] ?? '', $event['
 
 $selectedIdara = bgi_normalize_scope_value($event['idara'] ?? '', BGI_DEFAULT_IDARA);
 $selectedMohalla = bgi_normalize_scope_value($event['mohalla'] ?? '', BGI_DEFAULT_MOHALLA);
+$eventLat = $event['latitude'] ?? '';
+$eventLng = $event['longitude'] ?? '';
+$eventRadius = $event['radius_meters'] ?? '200';
 
 $conn->close();
 ?>
@@ -175,6 +189,33 @@ $conn->close();
         <input type="date" name="event_date" value="<?php echo htmlspecialchars($event_date ?? $event['event_date']); ?>" required>
         <label>Reporting Time</label>
         <input type="time" name="reporting_time" value="<?php echo htmlspecialchars($reporting_time ?? $event['reporting_time']); ?>" required>
+
+        <hr style="margin:1.5rem 0;border:none;border-top:1px solid #e5e7eb;">
+        <h3 style="margin:0 0 0.25rem;font-size:1rem;">Geofence (Optional)</h3>
+        <p style="margin:0 0 1rem;font-size:0.85rem;color:#666;">
+            Leave blank to remove the geofence, or set coordinates to flag remote check-ins on the mobile app.
+        </p>
+        <div style="display:flex;gap:1rem;flex-wrap:wrap;">
+            <div style="flex:1;min-width:160px;">
+                <label>Latitude</label>
+                <input type="number" name="latitude" step="0.0000001" min="-90" max="90"
+                       value="<?php echo htmlspecialchars($_POST['latitude'] ?? $eventLat); ?>"
+                       placeholder="e.g. 29.3759">
+            </div>
+            <div style="flex:1;min-width:160px;">
+                <label>Longitude</label>
+                <input type="number" name="longitude" step="0.0000001" min="-180" max="180"
+                       value="<?php echo htmlspecialchars($_POST['longitude'] ?? $eventLng); ?>"
+                       placeholder="e.g. 47.9774">
+            </div>
+            <div style="flex:1;min-width:120px;">
+                <label>Radius (meters)</label>
+                <input type="number" name="radius_meters" min="50" max="10000"
+                       value="<?php echo htmlspecialchars($_POST['radius_meters'] ?? $eventRadius); ?>"
+                       placeholder="200">
+            </div>
+        </div>
+
         <button type="submit">Update Event</button>
     </form>
 </div>

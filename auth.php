@@ -370,6 +370,14 @@ function bgi_bootstrap_access_schema(mysqli $conn): void
     bgi_ensure_event_code_schema($conn);
     bgi_ensure_table_column($conn, 'admin_users', 'totp_secret', "VARCHAR(32) NULL DEFAULT NULL");
     bgi_ensure_table_column($conn, 'admin_users', 'totp_enabled', "TINYINT(1) NOT NULL DEFAULT 0");
+    bgi_ensure_table_column($conn, 'events', 'latitude', "DECIMAL(10,7) NULL DEFAULT NULL");
+    bgi_ensure_table_column($conn, 'events', 'longitude', "DECIMAL(10,7) NULL DEFAULT NULL");
+    bgi_ensure_table_column($conn, 'events', 'radius_meters', "INT UNSIGNED NULL DEFAULT 200");
+    bgi_ensure_table_column($conn, 'attendance', 'checkin_lat', "DECIMAL(10,7) NULL DEFAULT NULL");
+    bgi_ensure_table_column($conn, 'attendance', 'checkin_lng', "DECIMAL(10,7) NULL DEFAULT NULL");
+    bgi_ensure_table_column($conn, 'attendance', 'checkin_distance_m', "INT NULL DEFAULT NULL");
+    bgi_ensure_table_column($conn, 'attendance', 'is_remote', "TINYINT(1) NOT NULL DEFAULT 0");
+    bgi_ensure_table_column($conn, 'attendance', 'checkin_source', "VARCHAR(10) NULL DEFAULT NULL");
 
     $defaultIdaraSql = bgi_sql_string($conn, BGI_DEFAULT_IDARA);
     $defaultMohallaSql = bgi_sql_string($conn, BGI_DEFAULT_MOHALLA);

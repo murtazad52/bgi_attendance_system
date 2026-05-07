@@ -112,6 +112,13 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             }
         }
 
+        $geoLat = trim($_POST['latitude'] ?? '');
+        $geoLng = trim($_POST['longitude'] ?? '');
+        $geoRadius = trim($_POST['radius_meters'] ?? '');
+        $geoLatVal = $geoLat !== '' && is_numeric($geoLat) ? (float) $geoLat : null;
+        $geoLngVal = $geoLng !== '' && is_numeric($geoLng) ? (float) $geoLng : null;
+        $geoRadiusVal = $geoRadius !== '' && ctype_digit($geoRadius) ? (int) $geoRadius : 200;
+
         if (!isset($error)) {
             mysqli_begin_transaction($conn);
 
@@ -143,15 +150,26 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                     }
 
                     $eventCode = bgi_generate_event_code($conn, $event_date);
-                    $insertStmt = $conn->prepare(
-                        "INSERT INTO events (event_name, event_code, idara, mohalla, event_date, reporting_time)
-                         VALUES (?, ?, ?, ?, ?, ?)"
-                    );
-                    if (!$insertStmt) {
-                        throw new Exception('Unable to prepare event creation.');
+                    if ($geoLatVal !== null && $geoLngVal !== null) {
+                        $insertStmt = $conn->prepare(
+                            "INSERT INTO events (event_name, event_code, idara, mohalla, event_date, reporting_time, latitude, longitude, radius_meters)
+                             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)"
+                        );
+                        if (!$insertStmt) {
+                            throw new Exception('Unable to prepare event creation.');
+                        }
+                        $insertStmt->bind_param("ssssssddi", $event_name, $eventCode, $targetIdara, $targetMohalla, $event_date, $reporting_time, $geoLatVal, $geoLngVal, $geoRadiusVal);
+                    } else {
+                        $insertStmt = $conn->prepare(
+                            "INSERT INTO events (event_name, event_code, idara, mohalla, event_date, reporting_time)
+                             VALUES (?, ?, ?, ?, ?, ?)"
+                        );
+                        if (!$insertStmt) {
+                            throw new Exception('Unable to prepare event creation.');
+                        }
+                        $insertStmt->bind_param("ssssss", $event_name, $eventCode, $targetIdara, $targetMohalla, $event_date, $reporting_time);
                     }
 
-                    $insertStmt->bind_param("ssssss", $event_name, $eventCode, $targetIdara, $targetMohalla, $event_date, $reporting_time);
                     if (!$insertStmt->execute()) {
                         throw new Exception($insertStmt->error);
                     }
@@ -280,6 +298,36 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
         <label for="reporting_time">Reporting Time:</label>
         <input type="time" id="reporting_time" name="reporting_time" value="<?= htmlspecialchars($_POST['reporting_time'] ?? '') ?>" required>
+
+        <hr style="margin:1.5rem 0;border:none;border-top:1px solid #e5e7eb;">
+        <h3 style="margin:0 0 0.25rem;font-size:1rem;">Geofence (Optional)</h3>
+        <p style="margin:0 0 1rem;font-size:0.85rem;color:#666;">
+            Set a location and radius so the mobile app can detect remote check-ins when members are outside the event area.
+        </p>
+
+        <div style="display:flex;gap:1rem;flex-wrap:wrap;">
+            <div style="flex:1;min-width:160px;">
+                <label for="latitude">Latitude</label>
+                <input type="number" id="latitude" name="latitude" step="0.0000001" min="-90" max="90"
+                       value="<?= htmlspecialchars($_POST['latitude'] ?? '') ?>"
+                       placeholder="e.g. 29.3759">
+            </div>
+            <div style="flex:1;min-width:160px;">
+                <label for="longitude">Longitude</label>
+                <input type="number" id="longitude" name="longitude" step="0.0000001" min="-180" max="180"
+                       value="<?= htmlspecialchars($_POST['longitude'] ?? '') ?>"
+                       placeholder="e.g. 47.9774">
+            </div>
+            <div style="flex:1;min-width:120px;">
+                <label for="radius_meters">Radius (meters)</label>
+                <input type="number" id="radius_meters" name="radius_meters" min="50" max="10000"
+                       value="<?= htmlspecialchars($_POST['radius_meters'] ?? '200') ?>"
+                       placeholder="200">
+            </div>
+        </div>
+        <p style="font-size:0.8rem;color:#888;margin-top:0.5rem;">
+            Tip: Find coordinates on Google Maps by right-clicking the event venue location.
+        </p>
 
         <button type="submit" class="btn">Add Event</button>
     </form>

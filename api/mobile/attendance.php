@@ -18,10 +18,11 @@ if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'GET') {
         "SELECT e.id, e.event_name, COALESCE(e.event_code, '') AS event_code,
                 DATE_FORMAT(e.event_date, '%Y-%m-%d') AS event_date,
                 COALESCE(DATE_FORMAT(e.reporting_time, '%H:%i'), '') AS reporting_time,
-                e.idara, e.mohalla, COUNT(a.id) AS recorded_count
+                e.idara, e.mohalla, e.latitude, e.longitude, e.radius_meters,
+                COUNT(a.id) AS recorded_count
          FROM events e
          LEFT JOIN attendance a ON a.event_id = e.id" . ($scopeSql !== '' ? ' WHERE ' . $scopeSql : '') . "
-         GROUP BY e.id, e.event_name, e.event_code, e.event_date, e.reporting_time, e.idara, e.mohalla
+         GROUP BY e.id, e.event_name, e.event_code, e.event_date, e.reporting_time, e.idara, e.mohalla, e.latitude, e.longitude, e.radius_meters
          ORDER BY e.event_date DESC, e.reporting_time DESC
          LIMIT 20",
         $scopeTypes,
@@ -41,6 +42,8 @@ $eventId = isset($input['eventId']) ? (int) $input['eventId'] : 0;
 $itsId = isset($input['itsId']) ? trim((string) $input['itsId']) : '';
 $statusInput = isset($input['status']) ? trim((string) $input['status']) : '';
 $remark = isset($input['remark']) ? trim((string) $input['remark']) : '';
+$adminLat = isset($input['lat']) && is_numeric($input['lat']) ? (float) $input['lat'] : null;
+$adminLng = isset($input['lng']) && is_numeric($input['lng']) ? (float) $input['lng'] : null;
 
 if ($eventId <= 0) {
     bgi_mobile_error('Please select an event.');
@@ -57,7 +60,7 @@ $scopeParams = $scopeFilter[2];
 $eventSql = "SELECT id, event_name, COALESCE(event_code, '') AS event_code,
                     DATE_FORMAT(event_date, '%Y-%m-%d') AS event_date,
                     COALESCE(DATE_FORMAT(reporting_time, '%H:%i:%s'), '') AS reporting_time,
-                    idara, mohalla
+                    idara, mohalla, latitude, longitude, radius_meters
              FROM events
              WHERE id = ?";
 if ($scopeSql !== '') {
@@ -144,6 +147,19 @@ $memberName = (string) ($member['member_name'] ?? '');
 $bgiId = (string) ($member['bgi_id'] ?? '');
 $idara = (string) ($member['idara'] ?? '');
 $mohalla = (string) ($member['mohalla'] ?? '');
+
+$adminIsRemote = 0;
+$adminDistanceM = null;
+$eventLat = isset($event['latitude']) && $event['latitude'] !== null ? (float) $event['latitude'] : null;
+$eventLng = isset($event['longitude']) && $event['longitude'] !== null ? (float) $event['longitude'] : null;
+$eventRadius = isset($event['radius_meters']) && $event['radius_meters'] !== null ? (int) $event['radius_meters'] : 200;
+if ($eventLat !== null && $eventLng !== null && $adminLat !== null && $adminLng !== null) {
+    $adminDistanceM = bgi_geo_distance_meters($adminLat, $adminLng, $eventLat, $eventLng);
+    if ($adminDistanceM > $eventRadius) {
+        $adminIsRemote = 1;
+    }
+}
+
 $insertColumns = ['event_id', 'member_id', 'member_name', 'its_id', 'bgi_id', 'idara', 'mohalla'];
 $insertPlaceholders = ['?', '?', '?', '?', '?', '?', '?'];
 $insertTypes = 'iisssss';
@@ -177,6 +193,41 @@ if (bgi_mobile_column_exists($conn, 'attendance', 'remark')) {
     $insertParams[] = $remark;
 }
 
+if (bgi_mobile_column_exists($conn, 'attendance', 'checkin_source')) {
+    $insertColumns[] = 'checkin_source';
+    $insertPlaceholders[] = '?';
+    $insertTypes .= 's';
+    $insertParams[] = 'admin';
+}
+
+if (bgi_mobile_column_exists($conn, 'attendance', 'is_remote')) {
+    $insertColumns[] = 'is_remote';
+    $insertPlaceholders[] = '?';
+    $insertTypes .= 'i';
+    $insertParams[] = $adminIsRemote;
+}
+
+if ($adminLat !== null && bgi_mobile_column_exists($conn, 'attendance', 'checkin_lat')) {
+    $insertColumns[] = 'checkin_lat';
+    $insertPlaceholders[] = '?';
+    $insertTypes .= 'd';
+    $insertParams[] = $adminLat;
+}
+
+if ($adminLng !== null && bgi_mobile_column_exists($conn, 'attendance', 'checkin_lng')) {
+    $insertColumns[] = 'checkin_lng';
+    $insertPlaceholders[] = '?';
+    $insertTypes .= 'd';
+    $insertParams[] = $adminLng;
+}
+
+if ($adminDistanceM !== null && bgi_mobile_column_exists($conn, 'attendance', 'checkin_distance_m')) {
+    $insertColumns[] = 'checkin_distance_m';
+    $insertPlaceholders[] = '?';
+    $insertTypes .= 'i';
+    $insertParams[] = $adminDistanceM;
+}
+
 $insertSql = sprintf(
     'INSERT INTO attendance (%s) VALUES (%s)',
     implode(', ', $insertColumns),
@@ -204,4 +255,6 @@ bgi_mobile_respond([
     'recordedStatus' => $finalStatus,
     'eventName' => (string) ($event['event_name'] ?? ''),
     'memberName' => $memberName,
+    'isRemote' => (bool) $adminIsRemote,
+    'distanceMeters' => $adminDistanceM,
 ]);

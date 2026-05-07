@@ -205,6 +205,15 @@ function bgi_mobile_require_login(): void
     }
 }
 
+function bgi_geo_distance_meters(float $lat1, float $lng1, float $lat2, float $lng2): int
+{
+    $r = 6371000;
+    $dLat = deg2rad($lat2 - $lat1);
+    $dLng = deg2rad($lng2 - $lng1);
+    $a = sin($dLat / 2) ** 2 + cos(deg2rad($lat1)) * cos(deg2rad($lat2)) * sin($dLng / 2) ** 2;
+    return (int) round($r * 2 * asin(sqrt($a)));
+}
+
 function bgi_mobile_format_event_rows(array $rows): array
 {
     return array_map(static function (array $row): array {
@@ -218,6 +227,9 @@ function bgi_mobile_format_event_rows(array $rows): array
             'mohalla' => (string) ($row['mohalla'] ?? ''),
             'recordedCount' => isset($row['recorded_count']) ? (int) $row['recorded_count'] : null,
             'userStatus' => $row['user_status'] ?? null,
+            'latitude' => array_key_exists('latitude', $row) && $row['latitude'] !== null ? (float) $row['latitude'] : null,
+            'longitude' => array_key_exists('longitude', $row) && $row['longitude'] !== null ? (float) $row['longitude'] : null,
+            'radiusMeters' => array_key_exists('radius_meters', $row) && $row['radius_meters'] !== null ? (int) $row['radius_meters'] : null,
         ];
     }, $rows);
 }
