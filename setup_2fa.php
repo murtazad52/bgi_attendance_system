@@ -78,7 +78,10 @@ $totpUri       = $setupSecret ? bgi_totp_uri($setupSecret, $username) : '';
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Two-Factor Authentication - <?= htmlspecialchars(bgi_app_name()) ?></title>
     <link rel="stylesheet" href="app.css">
+    <script src="lib/qrcode.min.js"></script>
     <style>
+        #qrcode { display: flex; justify-content: center; margin: 1rem 0; }
+        #qrcode canvas, #qrcode img { border-radius: 10px; border: 4px solid #d6e7dd; }
         .twofa-secret {
             font-family: monospace;
             font-size: 1.3rem;
@@ -141,13 +144,28 @@ $totpUri       = $setupSecret ? bgi_totp_uri($setupSecret, $username) : '';
     </form>
     <?php else: ?>
     <div class="twofa-form-group">
-        <label>Your Secret Key — enter this in your authenticator app</label>
+        <label>Scan with your authenticator app</label>
+        <div id="qrcode"></div>
+        <p style="text-align:center;font-size:0.85rem;color:#888;margin-top:0.3rem;">
+            Can't scan? Enter the key manually below.
+        </p>
+        <label style="margin-top:1rem;">Secret Key (manual entry)</label>
         <div class="twofa-secret"><?= htmlspecialchars(chunk_split($pendingSecret, 4, ' ')) ?></div>
         <p style="font-size:0.85rem;color:#666;margin-top:0.5rem;">
             Account name: <strong><?= htmlspecialchars($username) ?></strong> &nbsp;|&nbsp;
             Issuer: <strong>BGI Attendance</strong>
         </p>
     </div>
+    <script>
+        new QRCode(document.getElementById('qrcode'), {
+            text: <?= json_encode($totpUri) ?>,
+            width: 220,
+            height: 220,
+            colorDark: '#0f3d2a',
+            colorLight: '#ffffff',
+            correctLevel: QRCode.CorrectLevel.M
+        });
+    </script>
 
     <form method="POST" action="" style="margin-top:1.5rem;">
         <input type="hidden" name="action" value="enable">
