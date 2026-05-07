@@ -212,6 +212,10 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Add New Event - <?= htmlspecialchars(bgi_app_name()) ?></title>
     <link rel="stylesheet" href="app.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+    <style>
+        #event-map-preview { height: 280px; border-radius: 10px; border: 1px solid #d7e0db; margin-top: 0.75rem; display: none; }
+    </style>
 </head>
 <body class="app-page page-form">
 
@@ -355,13 +359,73 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                        placeholder="200">
             </div>
         </div>
+        <div id="event-map-preview"></div>
         <p style="font-size:0.8rem;color:#888;margin-top:0.5rem;">
-            Find coordinates: right-click the venue on Google Maps and copy the numbers shown.
             <a href="admin_locations.php" style="color:#176b53;">Manage saved locations →</a>
         </p>
 
         <button type="submit" class="btn">Add Event</button>
     </form>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+(function () {
+    var map = null, marker = null, circle = null;
+
+    function initMap(lat, lng, radius) {
+        var el = document.getElementById('event-map-preview');
+        el.style.display = 'block';
+
+        if (!map) {
+            map = L.map('event-map-preview').setView([lat, lng], 15);
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '© OpenStreetMap', maxZoom: 19
+            }).addTo(map);
+        }
+
+        if (marker) map.removeLayer(marker);
+        if (circle) map.removeLayer(circle);
+
+        var icon = L.divIcon({
+            className: '',
+            html: '<div style="width:16px;height:16px;background:#1B5B49;border:3px solid #E6C760;border-radius:50%;box-shadow:0 2px 5px rgba(0,0,0,0.3)"></div>',
+            iconSize: [16, 16], iconAnchor: [8, 8]
+        });
+        marker = L.marker([lat, lng], { icon: icon }).addTo(map).bindPopup('Event location').openPopup();
+        circle = L.circle([lat, lng], { radius: radius, color: '#1B5B49', weight: 2, fillOpacity: 0.1 }).addTo(map);
+        map.setView([lat, lng], 15);
+        setTimeout(function () { map.invalidateSize(); }, 50);
+    }
+
+    function tryUpdate() {
+        var lat = parseFloat(document.getElementById('latitude').value);
+        var lng = parseFloat(document.getElementById('longitude').value);
+        var radius = parseInt(document.getElementById('radius_meters').value) || 200;
+        if (!isNaN(lat) && !isNaN(lng) && lat >= -90 && lat <= 90 && lng >= -180 && lng <= 180) {
+            initMap(lat, lng, radius);
+        }
+    }
+
+    var debounce;
+    ['latitude', 'longitude'].forEach(function (id) {
+        document.getElementById(id).addEventListener('input', function () {
+            clearTimeout(debounce);
+            debounce = setTimeout(tryUpdate, 500);
+        });
+    });
+    document.getElementById('radius_meters').addEventListener('input', function () {
+        if (circle) circle.setRadius(parseInt(this.value) || 200);
+    });
+
+    // Also fire when saved-location picker changes (it already fills the fields)
+    var picker = document.getElementById('saved_location_picker');
+    if (picker) {
+        picker.addEventListener('change', function () {
+            setTimeout(tryUpdate, 50);
+        });
+    }
+    tryUpdate();
+})();
+</script>
 
 </div>
 
