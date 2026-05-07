@@ -85,6 +85,10 @@ if ($captainStmt) {
     $captainStmt->close();
 }
 
+if (empty($_SESSION['csrf_token'])) {
+    $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
+}
+
 $selectedIdara = $isMohallaAdmin ? '' : ($isScopedAdmin ? bgi_current_scope_idara() : BGI_DEFAULT_IDARA);
 $selectedMohalla = $isScopedAdmin ? bgi_current_scope_mohalla() : BGI_DEFAULT_MOHALLA;
 $selectedPosition = BGI_POSITION_MEMBER;
@@ -114,7 +118,10 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
     $scopeKey = $selectedIdara . '||' . $selectedMohalla;
 
-    if (!preg_match('/^\d{8}$/', $its_id)) {
+    $csrfToken = trim($_POST['csrf_token'] ?? '');
+    if (empty($_SESSION['csrf_token']) || !hash_equals($_SESSION['csrf_token'], $csrfToken)) {
+        $error = 'Invalid request token. Please refresh the page and try again.';
+    } elseif (!preg_match('/^\d{8}$/', $its_id)) {
         $error = "ITS ID must be exactly 8 numeric digits.";
     } elseif (!preg_match('/^\d{1,4}$/', $bgi_id)) {
         $error = "BGI ID must be up to 4 numeric digits.";
@@ -267,6 +274,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     <p class="page-intro">Create a single member record with ITS ID as the primary identifier and BGI/contact details as supporting data.</p>
 
     <form method="post">
+        <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($_SESSION['csrf_token']) ?>">
         <div class="form-group">
             <label>ITS ID (exact 8 digits)</label>
             <input type="text" name="its_id" value="<?= htmlspecialchars($_POST['its_id'] ?? '') ?>" required pattern="\d{8}" maxlength="8" minlength="8" title="Exactly 8 numeric digits">

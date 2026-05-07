@@ -24,6 +24,40 @@ if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'OPTIONS') {
     exit;
 }
 
+bgi_mobile_rate_limit();
+
+function bgi_mobile_rate_limit(int $maxRequests = 60, int $windowSeconds = 60): void
+{
+    $ip = $_SERVER['REMOTE_ADDR'] ?? '0.0.0.0';
+    $file = sys_get_temp_dir() . DIRECTORY_SEPARATOR . 'bgi_rl_' . md5($ip) . '.json';
+    $now = time();
+    $data = ['count' => 0, 'window_start' => $now];
+
+    if (is_file($file)) {
+        $raw = @file_get_contents($file);
+        if ($raw !== false) {
+            $parsed = json_decode($raw, true);
+            if (is_array($parsed)) {
+                $data = $parsed;
+            }
+        }
+    }
+
+    if ($now - (int) ($data['window_start'] ?? 0) >= $windowSeconds) {
+        $data = ['count' => 0, 'window_start' => $now];
+    }
+
+    $data['count'] = (int) ($data['count'] ?? 0) + 1;
+    @file_put_contents($file, json_encode($data), LOCK_EX);
+
+    if ($data['count'] > $maxRequests) {
+        http_response_code(429);
+        header('Retry-After: ' . $windowSeconds);
+        echo json_encode(['ok' => false, 'message' => 'Too many requests. Please wait before trying again.'], JSON_UNESCAPED_SLASHES);
+        exit;
+    }
+}
+
 function bgi_mobile_respond(array $payload, int $status = 200)
 {
     http_response_code($status);

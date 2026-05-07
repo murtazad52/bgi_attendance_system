@@ -36,6 +36,10 @@ foreach ($scopeOptions as $scopeOption) {
 ksort($idaraOptions);
 ksort($mohallaOptions);
 
+if (empty($_SESSION['csrf_token'])) {
+    $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
+}
+
 // Handle form submission
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $event_name = trim($_POST['event_name'] ?? '');
@@ -49,7 +53,10 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         : bgi_normalize_scope_value($_POST['mohalla'] ?? '', '');
     $targetPairs = [];
 
-    if ($event_name === '' || $event_date === '' || $reporting_time === '') {
+    $csrfToken = trim($_POST['csrf_token'] ?? '');
+    if (empty($_SESSION['csrf_token']) || !hash_equals($_SESSION['csrf_token'], $csrfToken)) {
+        $error = 'Invalid request token. Please refresh the page and try again.';
+    } elseif ($event_name === '' || $event_date === '' || $reporting_time === '') {
         $error = "All fields are required.";
     } else {
         if ($isPairScopedAdmin) {
@@ -272,6 +279,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     ?>
 
     <form method="POST" action="">
+        <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($_SESSION['csrf_token']) ?>">
         <label for="event_name">Event Name:</label>
         <input type="text" id="event_name" name="event_name" value="<?= htmlspecialchars($_POST['event_name'] ?? '') ?>" required>
 
