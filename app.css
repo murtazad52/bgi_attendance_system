@@ -309,6 +309,10 @@ body.app-page .back-link {
     background: linear-gradient(135deg, #51606d 0%, #334155 100%);
 }
 
+body.app-page .btn.danger {
+    background: linear-gradient(135deg, #d75b56 0%, #b83b49 100%);
+}
+
 body.app-page a.btn:hover,
 body.app-page .btn:hover,
 body.app-page .back-btn:hover,

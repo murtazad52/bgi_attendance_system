@@ -56,7 +56,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $memberStmt->close();
         }
     } else {
-        $adminStmt = $conn->prepare("SELECT id, username, password, role, idara, mohalla FROM admin_users WHERE username = ? LIMIT 1");
+        $adminStmt = $conn->prepare("SELECT id, username, password, role, idara, mohalla, totp_enabled FROM admin_users WHERE username = ? LIMIT 1");
         $adminStmt->bind_param("s", $identifier);
         $adminStmt->execute();
         $adminResult = $adminStmt->get_result();
@@ -66,6 +66,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
             if (password_verify($secret, $user['password'])) {
                 bgi_clear_auth_session();
+                session_regenerate_id(true);
+
+                if (!empty($user['totp_enabled'])) {
+                    $_SESSION['pending_2fa'] = true;
+                    $_SESSION['pending_2fa_user_id'] = (int) $user['id'];
+                    $adminStmt->close();
+                    $conn->close();
+                    header('Location: verify_2fa.php');
+                    exit;
+                }
+
                 $_SESSION['user_id'] = (int) $user['id'];
                 $_SESSION['username'] = $user['username'];
                 $_SESSION['admin_logged_in'] = true;

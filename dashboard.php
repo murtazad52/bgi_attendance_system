@@ -209,6 +209,9 @@ mysqli_close($conn);
                 <a href="create_admin.php" class="card"><span class="card-title">Create Admin</span><small>Add another administrator securely when needed.</small></a>
                 <a href="smtp_settings.php" class="card"><span class="card-title">SMTP Settings</span><small>Configure absent-notification emails and sender details.</small></a>
             <?php endif; ?>
+            <?php if (!bgi_is_member()): ?>
+                <a href="setup_2fa.php" class="card"><span class="card-title">Two-Factor Auth</span><small>Enable or manage 2FA on your account for extra security.</small></a>
+            <?php endif; ?>
         </div>
     </section>
 </div>

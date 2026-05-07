@@ -368,6 +368,8 @@ function bgi_bootstrap_access_schema(mysqli $conn): void
     bgi_ensure_admin_role_schema($conn);
     bgi_ensure_scope_map_schema($conn);
     bgi_ensure_event_code_schema($conn);
+    bgi_ensure_table_column($conn, 'admin_users', 'totp_secret', "VARCHAR(32) NULL DEFAULT NULL");
+    bgi_ensure_table_column($conn, 'admin_users', 'totp_enabled', "TINYINT(1) NOT NULL DEFAULT 0");
 
     $defaultIdaraSql = bgi_sql_string($conn, BGI_DEFAULT_IDARA);
     $defaultMohallaSql = bgi_sql_string($conn, BGI_DEFAULT_MOHALLA);
@@ -454,6 +456,8 @@ function bgi_clear_auth_session(): void
         'member_position',
         'scope_idara',
         'scope_mohalla',
+        'pending_2fa',
+        'pending_2fa_user_id',
     ];
 
     foreach ($keys as $key) {
