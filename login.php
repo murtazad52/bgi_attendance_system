@@ -168,7 +168,6 @@ $conn->close();
 <body class="login-page">
 
 <div class="login-card">
-    <div class="login-logo">&#9760;</div>
     <div class="login-app-name"><?= htmlspecialchars(bgi_app_name()) ?></div>
     <div class="login-page-title">Member Sign In</div>
 
