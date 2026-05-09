@@ -778,12 +778,12 @@ function bgi_set_flash(string $message, string $type = 'error'): void
     $_SESSION['flash_type'] = $type;
 }
 
-function bgi_require_roles(array $roles): void
+function bgi_require_roles(array $roles, string $loginPage = 'login.php'): void
 {
     $role = bgi_current_user_role();
 
     if ($role === '') {
-        header('Location: login.php');
+        header('Location: ' . $loginPage);
         exit;
     }
 

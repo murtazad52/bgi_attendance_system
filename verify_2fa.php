@@ -4,7 +4,7 @@ require_once 'db.php';
 require_once 'lib/totp.php';
 
 if (!isset($_SESSION['pending_2fa']) || !isset($_SESSION['pending_2fa_user_id'])) {
-    header('Location: login.php');
+    header('Location: adminlogin.php');
     exit;
 }
 
