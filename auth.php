@@ -732,13 +732,18 @@ function bgi_scope_matches_current(?string $idara, ?string $mohalla): bool
     ) === 0;
 }
 
+function bgi_is_outside_kuwait(float $lat, float $lng): bool
+{
+    return $lat < 28.5247 || $lat > 30.0888 || $lng < 46.5527 || $lng > 48.4363;
+}
+
 function bgi_home_path_for_current_user(): string
 {
     if (bgi_is_idara_attendance_admin()) {
         return 'admin_attendance.php';
     }
 
-    return bgi_is_member() ? 'report_members.php' : 'dashboard.php';
+    return bgi_is_member() ? 'member_checkin.php' : 'dashboard.php';
 }
 
 function bgi_scope_filter_sql(string $idaraExpression = 'idara', string $mohallaExpression = 'mohalla'): array

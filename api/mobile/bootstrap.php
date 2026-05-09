@@ -206,11 +206,6 @@ function bgi_mobile_require_login(): void
     }
 }
 
-function bgi_is_outside_kuwait(float $lat, float $lng): bool
-{
-    return $lat < 28.5247 || $lat > 30.0888 || $lng < 46.5527 || $lng > 48.4363;
-}
-
 function bgi_geo_distance_meters(float $lat1, float $lng1, float $lat2, float $lng2): int
 {
     $r = 6371000;

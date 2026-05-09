@@ -581,6 +581,7 @@ mysqli_close($conn);
     <div class="hero-actions">
         <a href="<?= htmlspecialchars($homePath) ?>" class="btn secondary">&larr; <?= $isMemberView ? 'Back' : 'Back to Dashboard' ?></a>
         <?php if ($isMemberView): ?>
+            <a href="member_checkin.php" class="btn secondary">Check In</a>
             <a href="report_events.php" class="btn secondary">Event Report</a>
             <a href="logout.php" class="btn">Logout</a>
         <?php endif; ?>
