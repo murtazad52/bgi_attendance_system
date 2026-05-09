@@ -1,14 +1,21 @@
 <?php
 date_default_timezone_set('Asia/Kuwait');
-include('session_check.php');
-
-include('db.php'); // your DB connection
+require_once __DIR__ . '/auth.php';
+include('db.php');
 require_once __DIR__ . '/mailer.php';
 
+if (!bgi_is_logged_in()) {
+    header('Location: login.php');
+    exit;
+}
 if (!bgi_can_take_attendance()) {
     header('Location: ' . bgi_home_path_for_current_user());
     exit;
 }
+
+$isMemberTL      = bgi_is_member() && bgi_is_team_leader_member();
+$isMemberCaptain = bgi_is_member() && bgi_is_captain_member();
+$myMemberItsId   = bgi_is_member() ? bgi_current_member_its_id() : '';
 
 // helper: check if a column exists
 function column_exists($conn, $table, $column) {
@@ -19,24 +26,17 @@ function column_exists($conn, $table, $column) {
 
 // ensure required attendance columns exist (adds them if missing)
 function ensure_attendance_columns($conn) {
-    // attendance_time DATETIME
     if (!column_exists($conn, 'attendance', 'attendance_time')) {
-        $q = "ALTER TABLE attendance ADD COLUMN attendance_time DATETIME NULL";
-        mysqli_query($conn, $q);
+        mysqli_query($conn, "ALTER TABLE attendance ADD COLUMN attendance_time DATETIME NULL");
     }
-    // status ENUM
     if (!column_exists($conn, 'attendance', 'status')) {
-        $q = "ALTER TABLE attendance ADD COLUMN `status` ENUM('Present','Late','Absent','Out of Kuwait') DEFAULT 'Present'";
-        mysqli_query($conn, $q);
+        mysqli_query($conn, "ALTER TABLE attendance ADD COLUMN `status` ENUM('Present','Late','Absent','Out of Kuwait') DEFAULT 'Present'");
     }
-    // remark
     if (!column_exists($conn, 'attendance', 'remark')) {
-        $q = "ALTER TABLE attendance ADD COLUMN `remark` VARCHAR(255) NULL";
-        mysqli_query($conn, $q);
+        mysqli_query($conn, "ALTER TABLE attendance ADD COLUMN `remark` VARCHAR(255) NULL");
     }
 }
 
-// call ensure (wrap in try/catch style handling by checking for errors later)
 ensure_attendance_columns($conn);
 
 $isScopedAdmin = !bgi_is_super_admin();
@@ -86,7 +86,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['event_id'])) {
         $attendance_error = 'Remark must be 255 characters or fewer.';
     } else {
         // find member by ITS ID
-        if (bgi_is_mohalla_admin()) {
+        if ($isMemberTL) {
+            $memberStmt = $conn->prepare("SELECT id, member_name, bgi_id, idara, mohalla, email, position, team_leader_its_id, captain_its_id FROM members WHERE its_id = ? AND idara = ? AND mohalla = ? AND (team_leader_its_id = ? OR its_id = ?) LIMIT 1");
+            $memberScopeIdara = bgi_current_scope_idara();
+            $memberScopeMohalla = bgi_current_scope_mohalla();
+            $memberStmt->bind_param("sssss", $its_id, $memberScopeIdara, $memberScopeMohalla, $myMemberItsId, $myMemberItsId);
+        } elseif (bgi_is_mohalla_admin()) {
             $memberStmt = $conn->prepare("SELECT id, member_name, bgi_id, idara, mohalla, email, position, team_leader_its_id, captain_its_id FROM members WHERE its_id = ? AND mohalla = ? LIMIT 1");
             $memberScopeMohalla = bgi_current_scope_mohalla();
             $memberStmt->bind_param("ss", $its_id, $memberScopeMohalla);
@@ -105,9 +110,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['event_id'])) {
         if (!$member_q) {
             $attendance_error = 'Unable to search for the member right now.';
         } elseif (mysqli_num_rows($member_q) === 0) {
-            $attendance_error = $isScopedAdmin
-                ? 'ITS ID not found inside your assigned Idara and Mohalla.'
-                : 'ITS ID not found in members.';
+            $attendance_error = $isMemberTL
+                ? 'ITS ID not found in your assigned team.'
+                : ($isScopedAdmin ? 'ITS ID not found inside your assigned Idara and Mohalla.' : 'ITS ID not found in members.');
         } else {
             $member = mysqli_fetch_assoc($member_q);
             $member_id = $member['id'];
@@ -238,16 +243,27 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['event_id'])) {
 <div class="topbar">
     <div><strong><?= htmlspecialchars(bgi_app_name()) ?></strong></div>
     <div>
-        <a href="dashboard.php" class="back">← Dashboard</a>
+        <?php if ($isMemberTL || $isMemberCaptain): ?>
+            <a href="member_self_checkin.php" class="back">← Self Check-In</a>
+            <a href="logout.php" class="logout" style="margin-left:8px;">Logout</a>
+        <?php else: ?>
+            <a href="dashboard.php" class="back">← Dashboard</a>
+        <?php endif; ?>
     </div>
 </div>
 
 <div class="container">
     <h1>Record Attendance (ITS ID)</h1>
     <p class="page-intro">
-        <?= $isScopedAdmin
-            ? 'Capture attendance quickly by ITS ID inside your assigned scope: ' . htmlspecialchars($scopeLabel) . '.'
-            : 'Capture attendance quickly by ITS ID, with optional status and remark overrides across all scopes.' ?>
+        <?php if ($isMemberTL): ?>
+            Record attendance for your team members by ITS ID. You can also enter your own ITS ID to self check-in.
+        <?php elseif ($isMemberCaptain): ?>
+            Record attendance for members in <?= htmlspecialchars($scopeLabel) ?> by ITS ID. You can also enter your own ITS ID to self check-in.
+        <?php elseif ($isScopedAdmin): ?>
+            Capture attendance quickly by ITS ID inside your assigned scope: <?= htmlspecialchars($scopeLabel) ?>.
+        <?php else: ?>
+            Capture attendance quickly by ITS ID, with optional status and remark overrides across all scopes.
+        <?php endif; ?>
     </p>
 
     <?php if ($attendance_message): ?>

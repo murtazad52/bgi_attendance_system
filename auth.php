@@ -623,6 +623,9 @@ function bgi_can_manage_events(): bool
 
 function bgi_can_take_attendance(): bool
 {
+    if (bgi_is_member()) {
+        return bgi_is_team_leader_member() || bgi_is_captain_member();
+    }
     return in_array(bgi_current_user_role(), [BGI_ROLE_SUPER_ADMIN, BGI_ROLE_IDARA_ADMIN, BGI_ROLE_MOHALLA_ADMIN, BGI_ROLE_IDARA_ATTENDANCE_ADMIN], true);
 }
 
@@ -743,7 +746,13 @@ function bgi_home_path_for_current_user(): string
         return 'admin_attendance.php';
     }
 
-    return bgi_is_member() ? 'member_checkin.php' : 'dashboard.php';
+    if (bgi_is_member()) {
+        return (bgi_is_team_leader_member() || bgi_is_captain_member())
+            ? 'admin_attendance.php'
+            : 'member_self_checkin.php';
+    }
+
+    return 'dashboard.php';
 }
 
 function bgi_scope_filter_sql(string $idaraExpression = 'idara', string $mohallaExpression = 'mohalla'): array
