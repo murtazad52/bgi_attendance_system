@@ -18,6 +18,8 @@ if ($conn->connect_error) {
     die("Connection failed: " . $conn->connect_error);
 }
 
+$conn->query("SET time_zone = '+03:00'");
+
 if (function_exists('bgi_bootstrap_access_schema')) {
     bgi_bootstrap_access_schema($conn);
 }

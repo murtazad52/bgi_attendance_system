@@ -5,7 +5,6 @@ require_once dirname(__DIR__, 2) . '/auth.php';
 require_once dirname(__DIR__, 2) . '/db.php';
 ob_clean();
 
-$conn->query("SET time_zone = '+03:00'");
 bgi_ensure_admin_role_schema($conn);
 if (function_exists('bgi_bootstrap_access_schema')) {
     bgi_bootstrap_access_schema($conn);
