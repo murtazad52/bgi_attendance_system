@@ -9,11 +9,24 @@ if (!$canViewAttendanceRecords) {
     exit;
 }
 
-$isScopedAdmin = !bgi_is_super_admin();
+$isSuperAdmin = bgi_is_super_admin();
+$isScopedAdmin = !$isSuperAdmin;
 $scopeLabel = bgi_current_scope_label();
+$deleteMessage = null;
+
+if ($isSuperAdmin && ($_SERVER['REQUEST_METHOD'] ?? '') === 'POST' && isset($_POST['delete_id'])) {
+    $deleteId = (int) $_POST['delete_id'];
+    $stmt = $conn->prepare("DELETE FROM attendance WHERE id = ?");
+    $stmt->bind_param('i', $deleteId);
+    $stmt->execute();
+    $deleted = $stmt->affected_rows;
+    $stmt->close();
+    $deleteMessage = $deleted > 0 ? 'success' : 'not_found';
+}
 
 // Fetch attendance records with ITS ID as the canonical member reference
-$query = "SELECT attendance.attendance_time,
+$query = "SELECT attendance.id AS attendance_id,
+                 attendance.attendance_time,
                  attendance.member_name AS attendance_member_name,
                  attendance.bgi_id AS attendance_bgi_id,
                  attendance.idara AS attendance_idara,
@@ -83,6 +96,12 @@ if ($isScopedAdmin) {
             : 'Browse the latest attendance entries with member, event, Idara, and Mohalla details in one place.' ?>
     </p>
 
+    <?php if ($deleteMessage === 'success'): ?>
+        <p class="message success">Attendance record deleted successfully.</p>
+    <?php elseif ($deleteMessage === 'not_found'): ?>
+        <p class="message error">Record not found or already deleted.</p>
+    <?php endif; ?>
+
     <?php if (mysqli_num_rows($result) > 0): ?>
         <div class="table-wrap">
             <table>
@@ -96,6 +115,7 @@ if ($isScopedAdmin) {
                         <th>Event</th>
                         <th>Event Code</th>
                         <th>Attendance Date</th>
+                        <?php if ($isSuperAdmin): ?><th></th><?php endif; ?>
                     </tr>
                 </thead>
                 <tbody>
@@ -109,6 +129,14 @@ if ($isScopedAdmin) {
                             <td><?php echo htmlspecialchars($row['event_name']); ?></td>
                             <td><?php echo htmlspecialchars($row['event_code'] ?? ''); ?></td>
                             <td><?php echo date('Y-m-d H:i:s', strtotime($row['attendance_time'])); ?></td>
+                            <?php if ($isSuperAdmin): ?>
+                            <td>
+                                <form method="POST" onsubmit="return confirm('Delete this attendance record? This cannot be undone.');">
+                                    <input type="hidden" name="delete_id" value="<?= (int) $row['attendance_id'] ?>">
+                                    <button type="submit" class="btn danger" style="min-height:32px;padding:4px 14px;font-size:0.82rem;">Delete</button>
+                                </form>
+                            </td>
+                            <?php endif; ?>
                         </tr>
                     <?php endwhile; ?>
                 </tbody>
