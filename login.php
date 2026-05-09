@@ -47,7 +47,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
                     $memberStmt->close();
                     $conn->close();
-                    header('Location: report_members.php');
+                    header('Location: ' . bgi_home_path_for_current_user());
                     exit;
                 }
             }
