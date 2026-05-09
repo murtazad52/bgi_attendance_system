@@ -53,36 +53,152 @@ $conn->close();
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Member Login — <?= htmlspecialchars(bgi_app_name()) ?></title>
     <link rel="stylesheet" href="app.css">
+    <style>
+        .login-card {
+            background: #fff;
+            border-radius: 24px;
+            box-shadow: 0 8px 40px rgba(20,68,53,0.13);
+            padding: 40px 36px 32px;
+            width: min(100%, 400px);
+        }
+        .login-logo {
+            width: 56px;
+            height: 56px;
+            background: linear-gradient(135deg, var(--accent) 0%, #23956f 100%);
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 20px;
+            font-size: 1.6rem;
+        }
+        .login-app-name {
+            text-align: center;
+            font-family: Georgia, "Times New Roman", serif;
+            font-size: 1.35rem;
+            font-weight: 700;
+            color: var(--accent);
+            margin: 0 0 4px;
+        }
+        .login-page-title {
+            text-align: center;
+            font-size: 0.88rem;
+            color: var(--muted);
+            margin: 0 0 28px;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            font-weight: 600;
+        }
+        .login-error {
+            background: var(--danger-soft);
+            color: #842029;
+            border: 1px solid #f2bcc4;
+            border-radius: 12px;
+            padding: 12px 14px;
+            font-size: 0.9rem;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        .login-field {
+            margin-bottom: 16px;
+        }
+        .login-field label {
+            display: block;
+            font-size: 0.82rem;
+            font-weight: 700;
+            color: var(--muted);
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            margin-bottom: 6px;
+        }
+        .login-field input {
+            width: 100%;
+            padding: 13px 16px;
+            border: 1.5px solid var(--line);
+            border-radius: 12px;
+            font-size: 1rem;
+            color: var(--ink);
+            background: #f8faf9;
+            outline: none;
+            transition: border-color 0.15s, box-shadow 0.15s;
+        }
+        .login-field input:focus {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px rgba(23,107,83,0.1);
+            background: #fff;
+        }
+        .login-submit {
+            width: 100%;
+            padding: 14px;
+            margin-top: 8px;
+            border: none;
+            border-radius: 12px;
+            background: linear-gradient(135deg, var(--accent) 0%, #23956f 100%);
+            color: #fff;
+            font-size: 1rem;
+            font-weight: 800;
+            cursor: pointer;
+            box-shadow: 0 6px 18px rgba(23,107,83,0.22);
+            transition: transform 0.15s, box-shadow 0.15s;
+        }
+        .login-submit:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 10px 24px rgba(23,107,83,0.28);
+        }
+        .login-submit:active { transform: scale(0.98); }
+        .login-divider {
+            text-align: center;
+            margin-top: 24px;
+            padding-top: 20px;
+            border-top: 1px solid var(--line);
+            font-size: 0.85rem;
+            color: var(--muted);
+        }
+        .login-divider a {
+            color: var(--accent);
+            font-weight: 700;
+            text-decoration: none;
+        }
+        .login-divider a:hover { text-decoration: underline; }
+        body.login-page {
+            background: var(--page-bg);
+        }
+    </style>
 </head>
 <body class="login-page">
 
-<div class="login-container">
-    <div class="login-brand"><?= htmlspecialchars(bgi_app_name()) ?></div>
-    <h2>Member Login</h2>
-    <p class="login-subtitle">Sign in with your ITS ID and registered phone number.</p>
+<div class="login-card">
+    <div class="login-logo">&#9760;</div>
+    <div class="login-app-name"><?= htmlspecialchars(bgi_app_name()) ?></div>
+    <div class="login-page-title">Member Sign In</div>
 
     <?php if ($error !== ''): ?>
-        <div class="error"><?= htmlspecialchars($error) ?></div>
+        <div class="login-error"><?= htmlspecialchars($error) ?></div>
     <?php endif; ?>
 
-    <form method="POST">
-        <label for="identifier">ITS ID</label>
-        <input type="text" id="identifier" name="identifier"
-               value="<?= htmlspecialchars($identifier) ?>"
-               placeholder="Enter your 8-digit ITS ID"
-               inputmode="numeric" maxlength="8" pattern="\d{8}" required autofocus>
+    <form method="POST" autocomplete="off">
+        <div class="login-field">
+            <label for="identifier">ITS ID</label>
+            <input type="text" id="identifier" name="identifier"
+                   value="<?= htmlspecialchars($identifier) ?>"
+                   placeholder="8-digit ITS ID"
+                   inputmode="numeric" maxlength="8" pattern="\d{8}"
+                   required autofocus>
+        </div>
 
-        <label for="secret">Phone Number</label>
-        <input type="text" id="secret" name="secret"
-               placeholder="Enter your registered phone number"
-               inputmode="numeric" required>
+        <div class="login-field">
+            <label for="secret">Phone Number</label>
+            <input type="text" id="secret" name="secret"
+                   placeholder="Registered phone number"
+                   inputmode="numeric" required>
+        </div>
 
-        <input type="submit" value="Login">
+        <button type="submit" class="login-submit">Sign In</button>
     </form>
 
-    <p style="text-align:center;margin-top:20px;font-size:0.9rem;color:#666;">
-        Staff / Admin? <a href="adminlogin.php">Admin Login →</a>
-    </p>
+    <div class="login-divider">
+        Staff or Admin? <a href="adminlogin.php">Admin Login &rarr;</a>
+    </div>
 </div>
 
 </body>
