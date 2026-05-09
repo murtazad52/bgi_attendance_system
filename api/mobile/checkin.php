@@ -103,10 +103,14 @@ if ($eventLat !== null && $eventLng !== null && $lat !== null && $lng !== null) 
     }
 }
 
-$reportingBase = ($event['event_date'] ?? '') !== '' ? $event['event_date'] : date('Y-m-d');
-$reportingTime = ($event['reporting_time'] ?? '') !== '' ? $event['reporting_time'] : '00:00:00';
-$reportingTimestamp = strtotime($reportingBase . ' ' . $reportingTime);
-$finalStatus = ($reportingTimestamp !== false && time() > $reportingTimestamp) ? 'Late' : 'Present';
+if ($lat !== null && $lng !== null && bgi_is_outside_kuwait($lat, $lng)) {
+    $finalStatus = 'Out of Kuwait';
+} else {
+    $reportingBase = ($event['event_date'] ?? '') !== '' ? $event['event_date'] : date('Y-m-d');
+    $reportingTime = ($event['reporting_time'] ?? '') !== '' ? $event['reporting_time'] : '00:00:00';
+    $reportingTimestamp = strtotime($reportingBase . ' ' . $reportingTime);
+    $finalStatus = ($reportingTimestamp !== false && time() > $reportingTimestamp) ? 'Late' : 'Present';
+}
 
 $memberStmt = $conn->prepare("SELECT member_name, bgi_id, idara, mohalla FROM members WHERE its_id = ? LIMIT 1");
 if (!$memberStmt) {
