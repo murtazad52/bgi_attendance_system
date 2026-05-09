@@ -1,7 +1,9 @@
 <?php
+date_default_timezone_set('Asia/Kuwait');
 include('session_check.php');
 
 include('db.php'); // your DB connection
+$conn->query("SET time_zone = '+03:00'");
 require_once __DIR__ . '/mailer.php';
 
 if (!bgi_can_take_attendance()) {

@@ -1,4 +1,5 @@
 <?php
+date_default_timezone_set('Asia/Kuwait');
 if (PHP_SAPI !== 'cli' && session_status() !== PHP_SESSION_ACTIVE) {
     session_start();
 }
