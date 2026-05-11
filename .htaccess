@@ -15,6 +15,17 @@ Options -Indexes
     Deny from all
 </Files>
 
+<Files "rate_limit.php">
+    Order allow,deny
+    Deny from all
+</Files>
+
+# Block direct web access to the QR code library directory
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    RewriteRule ^phpqrcode/ - [F,L]
+</IfModule>
+
 <IfModule mod_headers.c>
     Header always set X-Content-Type-Options "nosniff"
     Header always set X-Frame-Options "SAMEORIGIN"
@@ -23,4 +34,8 @@ Options -Indexes
     Header always set Strict-Transport-Security "max-age=31536000; includeSubDomains"
     Header always set Content-Security-Policy "default-src 'self'; script-src 'self' 'unsafe-inline' https://unpkg.com; style-src 'self' 'unsafe-inline' https://unpkg.com; img-src 'self' data: https://*.tile.openstreetmap.org; font-src 'self' data:"
     Header always set Permissions-Policy "geolocation=(), microphone=(), camera=()"
+
+    # A05: Remove version-disclosing headers
+    Header always unset X-Powered-By
+    Header unset X-Powered-By
 </IfModule>

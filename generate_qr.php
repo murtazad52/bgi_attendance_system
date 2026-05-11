@@ -1,5 +1,12 @@
 <?php
-include('phpqrcode/qrlib.php'); // Adjust this path if needed
+require_once __DIR__ . '/auth.php';
+
+if (!bgi_is_staff()) {
+    http_response_code(403);
+    exit('Forbidden');
+}
+
+include('phpqrcode/qrlib.php');
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $bgi_id = trim($_POST['bgi_id']);

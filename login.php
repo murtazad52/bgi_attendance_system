@@ -1,6 +1,7 @@
 <?php
 require_once __DIR__ . '/auth.php';
 include 'db.php';
+require_once __DIR__ . '/rate_limit.php';
 
 if (bgi_is_logged_in()) {
     header('Location: ' . bgi_home_path_for_current_user());
@@ -11,9 +12,12 @@ $identifier = trim($_POST['identifier'] ?? '');
 $error = '';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $clientIp = bgi_client_ip();
     $secret = trim($_POST['secret'] ?? '');
 
-    if ($identifier === '' || $secret === '') {
+    if (bgi_is_rate_limited($conn, $clientIp, 'member_login', 15, 300)) {
+        $error = 'Too many login attempts. Please wait 5 minutes and try again.';
+    } elseif ($identifier === '' || $secret === '') {
         $error = 'Please enter your ITS ID and phone number.';
     } elseif (!preg_match('/^\d{8}$/', $identifier)) {
         $error = 'ITS ID must be exactly 8 digits.';
@@ -40,6 +44,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             exit;
         }
 
+        bgi_record_rate_limit_hit($conn, $clientIp, 'member_login');
         $error = 'Invalid ITS ID or phone number.';
     }
 }
