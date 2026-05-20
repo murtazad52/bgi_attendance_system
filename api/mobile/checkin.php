@@ -112,6 +112,21 @@ if ($eventLat !== null && $eventLng !== null && $lat !== null && $lng !== null) 
     }
 }
 
+// ── 50 m geofence enforcement ─────────────────────────────────────────────────
+// If the event has a geofence set, the member MUST be within 50 m to check in.
+// No location sent = also blocked (prevents bypassing by withholding GPS).
+define('BGI_MAX_CHECKIN_DISTANCE_M', 50);
+if ($eventLat !== null && $eventLng !== null) {
+    if ($lat === null || $lng === null) {
+        bgi_mobile_error('This event requires your location. Please enable GPS and try again.');
+    }
+    if ($distanceM === null || $distanceM > BGI_MAX_CHECKIN_DISTANCE_M) {
+        $dist = $distanceM !== null ? (int) round($distanceM) : '?';
+        bgi_mobile_error("Check-in blocked. You are {$dist} m away from the event venue. Check-in is only allowed within 50 m.");
+    }
+}
+// ─────────────────────────────────────────────────────────────────────────────
+
 if ($lat !== null && $lng !== null && bgi_is_outside_kuwait($lat, $lng)) {
     $finalStatus = 'Out of Kuwait';
 } else {

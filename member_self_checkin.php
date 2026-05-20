@@ -28,7 +28,8 @@ if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'POST') {
 
     $evStmt = $conn->prepare(
         "SELECT id, event_name, DATE_FORMAT(event_date,'%Y-%m-%d') AS event_date,
-                COALESCE(DATE_FORMAT(reporting_time,'%H:%i:%s'),'') AS reporting_time
+                COALESCE(DATE_FORMAT(reporting_time,'%H:%i:%s'),'') AS reporting_time,
+                latitude, longitude, radius_meters
          FROM events
          WHERE id = ? AND idara = ? AND mohalla = ?
            AND TIMESTAMPADD(HOUR, 12, CONCAT(event_date,' ',COALESCE(TIME(reporting_time),'00:00:00'))) >= NOW()
@@ -64,6 +65,24 @@ if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'POST') {
                 header('Location: member_self_checkin.php');
                 exit;
             }
+
+            // ── 50 m geofence enforcement ────────────────────────────────────
+            $evLat    = isset($postEvent['latitude'])      && $postEvent['latitude']  !== null ? (float) $postEvent['latitude']  : null;
+            $evLng    = isset($postEvent['longitude'])     && $postEvent['longitude'] !== null ? (float) $postEvent['longitude'] : null;
+            if ($evLat !== null && $evLng !== null) {
+                if ($lat === null || $lng === null) {
+                    $_SESSION['checkin_flash'] = ['type' => 'error', 'msg' => 'This event requires your location. Please enable GPS and try again.'];
+                    header('Location: member_self_checkin.php');
+                    exit;
+                }
+                $distM = bgi_geo_distance_meters($lat, $lng, $evLat, $evLng);
+                if ($distM > 50) {
+                    $_SESSION['checkin_flash'] = ['type' => 'error', 'msg' => 'Check-in blocked. You are ' . (int)round($distM) . ' m away. Must be within 50 m of the event venue.'];
+                    header('Location: member_self_checkin.php');
+                    exit;
+                }
+            }
+            // ─────────────────────────────────────────────────────────────────
 
             if ($lat !== null && $lng !== null && bgi_is_outside_kuwait($lat, $lng)) {
                 $status = 'Out of Kuwait';

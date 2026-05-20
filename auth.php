@@ -740,6 +740,21 @@ function bgi_is_outside_kuwait(float $lat, float $lng): bool
     return $lat < 28.5247 || $lat > 30.0888 || $lng < 46.5527 || $lng > 48.4363;
 }
 
+/**
+ * Haversine formula — returns distance in metres between two GPS coordinates.
+ * Shared by both web (auth.php) and mobile (bootstrap.php) flows.
+ */
+if (!function_exists('bgi_geo_distance_meters')) {
+    function bgi_geo_distance_meters(float $lat1, float $lng1, float $lat2, float $lng2): int
+    {
+        $earthRadius = 6371000; // metres
+        $dLat = deg2rad($lat2 - $lat1);
+        $dLng = deg2rad($lng2 - $lng1);
+        $a = sin($dLat / 2) ** 2 + cos(deg2rad($lat1)) * cos(deg2rad($lat2)) * sin($dLng / 2) ** 2;
+        return (int) round($earthRadius * 2 * asin(sqrt($a)));
+    }
+}
+
 function bgi_home_path_for_current_user(): string
 {
     if (bgi_is_idara_attendance_admin()) {

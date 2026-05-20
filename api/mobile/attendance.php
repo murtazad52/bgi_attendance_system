@@ -169,6 +169,20 @@ if ($eventLat !== null && $eventLng !== null && $adminLat !== null && $adminLng 
     }
 }
 
+// ── 50 m geofence enforcement ─────────────────────────────────────────────────
+// If the event has a geofence, attendance recording is only allowed within 50 m.
+if ($eventLat !== null && $eventLng !== null) {
+    if ($adminLat === null || $adminLng === null) {
+        bgi_mobile_error('This event requires your location. Please enable GPS and try again.');
+    }
+    $geoMaxDist = defined('BGI_MAX_CHECKIN_DISTANCE_M') ? BGI_MAX_CHECKIN_DISTANCE_M : 50;
+    if ($adminDistanceM === null || $adminDistanceM > $geoMaxDist) {
+        $dist = $adminDistanceM !== null ? (int) round($adminDistanceM) : '?';
+        bgi_mobile_error("Check-in blocked. You are {$dist} m away from the event venue. Attendance recording is only allowed within 50 m.");
+    }
+}
+// ─────────────────────────────────────────────────────────────────────────────
+
 $insertColumns = ['event_id', 'member_id', 'member_name', 'its_id', 'bgi_id', 'idara', 'mohalla'];
 $insertPlaceholders = ['?', '?', '?', '?', '?', '?', '?'];
 $insertTypes = 'iisssss';
