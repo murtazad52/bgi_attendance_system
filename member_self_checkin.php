@@ -51,6 +51,20 @@ if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'POST') {
         if ($already) {
             $_SESSION['checkin_flash'] = ['type' => 'error', 'msg' => 'You have already checked in for this event.'];
         } else {
+            // Check-in time window: 30 min before → 1 hour after reporting_time
+            $tw_base  = $postEvent['event_date'] !== '' ? $postEvent['event_date'] : date('Y-m-d');
+            $tw_time  = $postEvent['reporting_time'] !== '' ? $postEvent['reporting_time'] : '00:00:00';
+            $tw_start = strtotime($tw_base . ' ' . $tw_time) - 1800;
+            $tw_end   = strtotime($tw_base . ' ' . $tw_time) + 3600;
+            if (time() < $tw_start || time() > $tw_end) {
+                $_SESSION['checkin_flash'] = [
+                    'type' => 'error',
+                    'msg'  => 'Check-in window is ' . date('H:i', $tw_start) . ' – ' . date('H:i', $tw_end) . '. Check-in is not open yet or has already closed.',
+                ];
+                header('Location: member_self_checkin.php');
+                exit;
+            }
+
             if ($lat !== null && $lng !== null && bgi_is_outside_kuwait($lat, $lng)) {
                 $status = 'Out of Kuwait';
             } else {

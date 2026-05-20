@@ -119,6 +119,15 @@ function describe_member_event_row(?array $attendanceRow, ?string $reportingTime
         ];
     }
 
+    if ($storedStatus === 'InformedAbsent') {
+        return [
+            'status_text' => 'Informed Absent',
+            'status_class' => 'status-informed-absent',
+            'attendance_time' => '--',
+            'remark' => $storedRemark !== '' ? $storedRemark : 'Informed Absent',
+        ];
+    }
+
     if ($storedStatus === 'Late') {
         return [
             'status_text' => 'Present (Late)',
@@ -335,7 +344,7 @@ if ($event_id === 0) {
         FROM attendance a
         JOIN events e ON a.event_id = e.id
         WHERE a.its_id = ?
-        AND COALESCE(a.status, '') NOT IN ('Late', 'Absent', 'Out of Kuwait')
+        AND COALESCE(a.status, '') NOT IN ('Late', 'Absent', 'InformedAbsent', 'Out of Kuwait')
         AND a.attendance_time IS NOT NULL
         AND TIME(a.attendance_time) <= TIME(e.reporting_time)
     ";
@@ -354,7 +363,7 @@ if ($event_id === 0) {
         AND (
             COALESCE(a.status, '') = 'Late'
             OR (
-                COALESCE(a.status, '') NOT IN ('Absent', 'Out of Kuwait')
+                COALESCE(a.status, '') NOT IN ('Absent', 'InformedAbsent', 'Out of Kuwait')
                 AND a.attendance_time IS NOT NULL
                 AND TIME(a.attendance_time) > TIME(e.reporting_time)
             )

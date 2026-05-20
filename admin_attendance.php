@@ -30,14 +30,25 @@ function ensure_attendance_columns($conn) {
         mysqli_query($conn, "ALTER TABLE attendance ADD COLUMN attendance_time DATETIME NULL");
     }
     if (!column_exists($conn, 'attendance', 'status')) {
-        mysqli_query($conn, "ALTER TABLE attendance ADD COLUMN `status` ENUM('Present','Late','Absent','Out of Kuwait') DEFAULT 'Present'");
+        mysqli_query($conn, "ALTER TABLE attendance ADD COLUMN `status` ENUM('Present','Late','Absent','Out of Kuwait','InformedAbsent') DEFAULT 'Present'");
     }
     if (!column_exists($conn, 'attendance', 'remark')) {
         mysqli_query($conn, "ALTER TABLE attendance ADD COLUMN `remark` VARCHAR(255) NULL");
     }
 }
 
+// ensure InformedAbsent exists in the status ENUM (migrates existing deployments)
+function ensure_informed_absent_status($conn) {
+    $res = mysqli_query($conn, "SHOW COLUMNS FROM `attendance` LIKE 'status'");
+    if (!$res) return;
+    $row = mysqli_fetch_assoc($res);
+    if (!$row) return;
+    if (strpos((string)($row['Type'] ?? ''), 'InformedAbsent') !== false) return;
+    mysqli_query($conn, "ALTER TABLE `attendance` MODIFY COLUMN `status` ENUM('Present','Late','Absent','Out of Kuwait','InformedAbsent') DEFAULT 'Present'");
+}
+
 ensure_attendance_columns($conn);
+ensure_informed_absent_status($conn);
 
 $isScopedAdmin = !bgi_is_super_admin();
 $scopeLabel = bgi_current_scope_label();
@@ -66,7 +77,7 @@ if (!$events_result) {
 $attendance_message = '';
 $attendance_error = '';
 $attendance_warning = '';
-$allowed_statuses = ['Present', 'Late', 'Absent', 'Out of Kuwait'];
+$allowed_statuses = ['Present', 'Late', 'Absent', 'Out of Kuwait', 'InformedAbsent'];
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['event_id'])) {
     $event_id = intval($_POST['event_id']);
@@ -156,10 +167,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['event_id'])) {
                 }
                 $eventStmt->close();
 
+                // Pre-compute check-in time window (30 min before → 1 hour after reporting_time)
+                $checkin_window_error = '';
+                if ($reporting_time !== null && $reporting_time !== '') {
+                    $event_date_str  = $ev['event_date'] ?? date('Y-m-d');
+                    $tw_start        = strtotime($event_date_str . ' ' . $reporting_time) - 1800;
+                    $tw_end          = strtotime($event_date_str . ' ' . $reporting_time) + 3600;
+                    if (time() < $tw_start || time() > $tw_end) {
+                        $checkin_window_error = 'Check-in is only allowed from ' . date('H:i', $tw_start) . ' to ' . date('H:i', $tw_end) . ' (30 min before to 1 hour after event start).';
+                    }
+                }
+
                 if ($reporting_time === null) {
                     $attendance_error = 'The selected event could not be found inside your allowed scope.';
                 } elseif (strcasecmp($member_idara, $event_idara) !== 0 || strcasecmp($member_mohalla, $event_mohalla) !== 0) {
                     $attendance_error = 'This member belongs to a different Idara or Mohalla than the selected event.';
+                } elseif ($checkin_window_error !== '') {
+                    $attendance_error = $checkin_window_error;
                 } else {
                     // compute current server time and default status
                     $now_dt = date('Y-m-d H:i:s');
@@ -309,6 +333,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['event_id'])) {
                     <option value="Present" <?= (!$attendance_message && isset($_POST['status']) && $_POST['status'] === 'Present') ? 'selected' : '' ?>>Present</option>
                     <option value="Late" <?= (!$attendance_message && isset($_POST['status']) && $_POST['status'] === 'Late') ? 'selected' : '' ?>>Late</option>
                     <option value="Absent" <?= (!$attendance_message && isset($_POST['status']) && $_POST['status'] === 'Absent') ? 'selected' : '' ?>>Absent</option>
+                    <option value="InformedAbsent" <?= (!$attendance_message && isset($_POST['status']) && $_POST['status'] === 'InformedAbsent') ? 'selected' : '' ?>>Informed Absent</option>
                     <option value="Out of Kuwait" <?= (!$attendance_message && isset($_POST['status']) && $_POST['status'] === 'Out of Kuwait') ? 'selected' : '' ?>>Out of Kuwait</option>
                 </select>
                 <div class="small-note">Leave empty to auto-calculate status using event reporting time.</div>

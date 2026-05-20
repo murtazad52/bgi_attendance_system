@@ -586,11 +586,14 @@ tbody tr:hover td {
 .status-badge.ontime { background: #dcfce7; color: #166534; }
 .status-badge.late { background: #ffedd5; color: #c2410c; }
 .status-badge.absent { background: #fee2e2; color: #b91c1c; }
+.status-badge.informed-absent { background: #fff7ed; color: #c2410c; border: 1px dashed #f97316; }
 .status-badge.out-of-kuwait { background: #cffafe; color: #155e75; }
+.status-informed-absent { color: #c2410c; font-weight: 800; }
 
 .summary-total { background: #eff6ff; border-top-color: #2563eb; color: #1d4ed8; }
 .summary-late { background: #fff7ed; border-top-color: #f59e0b; color: #b45309; }
 .summary-absent { background: #fef2f2; border-top-color: #dc2626; color: #b91c1c; }
+.summary-informed-absent { background: #fff7ed; border-top-color: #ea580c; color: #c2410c; }
 .summary-out { background: #ecfeff; border-top-color: #0891b2; color: #0f766e; }
 .summary-time { background: #f8fafc; border-top-color: #475569; color: #334155; }
 

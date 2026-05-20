@@ -225,13 +225,14 @@ $attendanceStmt->close();
 
 $search_name = $isSelfMemberView ? '' : trim($_GET['search_name'] ?? '');
 $status_filter = $_GET['status_filter'] ?? '';
-$allowed_status_filters = ['present', 'absent', 'ontime', 'late', 'out-of-kuwait'];
+$allowed_status_filters = ['present', 'absent', 'informed-absent', 'ontime', 'late', 'out-of-kuwait'];
 $statusFilterLabels = [
-    'present' => 'Present',
-    'absent' => 'Absent',
-    'ontime' => 'On Time',
-    'late' => 'Late',
-    'out-of-kuwait' => 'Out of Kuwait',
+    'present'          => 'Present',
+    'absent'           => 'Absent',
+    'informed-absent'  => 'Informed Absent',
+    'ontime'           => 'On Time',
+    'late'             => 'Late',
+    'out-of-kuwait'    => 'Out of Kuwait',
 ];
 if (!in_array($status_filter, $allowed_status_filters, true) && $status_filter !== '') {
     $status_filter = '';
@@ -249,6 +250,9 @@ function get_status($member_id, $attendance_data, $reporting_time) {
     }
     if ($stored_status === 'Absent') {
         return 'absent';
+    }
+    if ($stored_status === 'InformedAbsent') {
+        return 'informed-absent';
     }
     if ($stored_status === 'Out of Kuwait') {
         return 'out-of-kuwait';
@@ -290,7 +294,10 @@ foreach ($all_members as $member_id => $member) {
         if ($status_filter == 'present' && $present_status != 'present') {
             continue;
         }
-        if ($status_filter == 'absent' && $present_status != 'absent') {
+        if ($status_filter == 'absent' && $present_status != 'absent' && $status != 'informed-absent') {
+            continue;
+        }
+        if ($status_filter == 'informed-absent' && $status != 'informed-absent') {
             continue;
         }
         if ($status_filter == 'ontime' && $status != 'ontime') {
@@ -312,6 +319,7 @@ $total_members = count($filtered_members);
 $total_ontime = 0;
 $total_late = 0;
 $total_absent = 0;
+$total_informed_absent = 0;
 $total_out_of_kuwait = 0;
 foreach ($filtered_members as $member_id => $member) {
     $status = get_status($member_id, $attendance_data, $reporting_time);
@@ -328,6 +336,11 @@ foreach ($filtered_members as $member_id => $member) {
 
     if ($status === 'out-of-kuwait') {
         $total_out_of_kuwait++;
+        continue;
+    }
+
+    if ($status === 'informed-absent') {
+        $total_informed_absent++;
         continue;
     }
 
@@ -423,6 +436,7 @@ mysqli_close($conn);
                     <option value="">-- Filter by Status --</option>
                     <option value="present" <?= $status_filter === 'present' ? 'selected' : '' ?>>Present</option>
                     <option value="absent" <?= $status_filter === 'absent' ? 'selected' : '' ?>>Absent</option>
+                    <option value="informed-absent" <?= $status_filter === 'informed-absent' ? 'selected' : '' ?>>Informed Absent</option>
                     <option value="ontime" <?= $status_filter === 'ontime' ? 'selected' : '' ?>>On Time</option>
                     <option value="late" <?= $status_filter === 'late' ? 'selected' : '' ?>>Late</option>
                     <option value="out-of-kuwait" <?= $status_filter === 'out-of-kuwait' ? 'selected' : '' ?>>Out of Kuwait</option>
@@ -436,6 +450,7 @@ mysqli_close($conn);
             <div class="summary-card summary-ontime"><span class="summary-label">On Time</span><span class="summary-value"><?= $total_ontime ?></span></div>
             <div class="summary-card summary-late"><span class="summary-label">Late</span><span class="summary-value"><?= $total_late ?></span></div>
             <div class="summary-card summary-absent"><span class="summary-label">Absent</span><span class="summary-value"><?= $total_absent ?></span></div>
+            <div class="summary-card summary-informed-absent"><span class="summary-label">Informed Absent</span><span class="summary-value"><?= $total_informed_absent ?></span></div>
             <div class="summary-card summary-out"><span class="summary-label">Out of Kuwait</span><span class="summary-value"><?= $total_out_of_kuwait ?></span></div>
             <div class="summary-card summary-time"><span class="summary-label">Reporting Time</span><span class="summary-value"><?= htmlspecialchars($reporting_time) ?></span></div>
         </div>
@@ -472,10 +487,11 @@ mysqli_close($conn);
                                     $status_class = strtolower($status);
                                     $stored_remark = trim($attendance_data[$member_id]['remark'] ?? '');
                                     $status_label = [
-                                        'ontime' => 'On Time',
-                                        'late' => 'Late',
-                                        'absent' => 'Absent',
-                                        'out-of-kuwait' => 'Out of Kuwait',
+                                        'ontime'           => 'On Time',
+                                        'late'             => 'Late',
+                                        'absent'           => 'Absent',
+                                        'informed-absent'  => 'Informed Absent',
+                                        'out-of-kuwait'    => 'Out of Kuwait',
                                     ][$status] ?? ucfirst($status);
                                     $remark = $stored_remark !== '' ? $stored_remark : $status_label;
                                 ?>

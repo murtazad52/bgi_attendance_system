@@ -32,7 +32,7 @@ if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'GET') {
     bgi_mobile_respond([
         'ok' => true,
         'user' => bgi_mobile_current_user_payload(),
-        'allowedStatuses' => ['Present', 'Late', 'Absent', 'Out of Kuwait'],
+        'allowedStatuses' => ['Present', 'Late', 'Absent', 'InformedAbsent', 'Out of Kuwait'],
         'events' => bgi_mobile_format_event_rows($events),
     ]);
 }
@@ -131,7 +131,16 @@ if ($duplicateExists) {
     bgi_mobile_error('Attendance has already been recorded for this member and event.');
 }
 
-$allowedStatuses = ['Present', 'Late', 'Absent', 'Out of Kuwait'];
+// Check-in time window: 30 min before → 1 hour after reporting_time
+$tw_base  = ($event['event_date'] ?? '') !== '' ? $event['event_date'] : date('Y-m-d');
+$tw_time  = ($event['reporting_time'] ?? '') !== '' ? $event['reporting_time'] : '00:00:00';
+$tw_start = strtotime($tw_base . ' ' . $tw_time) - 1800;
+$tw_end   = strtotime($tw_base . ' ' . $tw_time) + 3600;
+if (time() < $tw_start || time() > $tw_end) {
+    bgi_mobile_error('Check-in is only allowed from ' . date('H:i', $tw_start) . ' to ' . date('H:i', $tw_end) . ' (30 min before to 1 hour after event start).');
+}
+
+$allowedStatuses = ['Present', 'Late', 'Absent', 'InformedAbsent', 'Out of Kuwait'];
 $finalStatus = $statusInput;
 if ($finalStatus === '' || strcasecmp($finalStatus, 'Auto') === 0) {
     $reportingBase = ($event['event_date'] ?? '') !== '' ? $event['event_date'] : date('Y-m-d');

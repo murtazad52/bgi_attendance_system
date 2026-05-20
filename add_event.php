@@ -13,6 +13,23 @@ if (!bgi_can_manage_events()) {
     exit;
 }
 
+// Ensure event_assignments table exists
+mysqli_query($conn,
+    "CREATE TABLE IF NOT EXISTS event_assignments (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        event_id INT NOT NULL,
+        member_id INT NOT NULL,
+        its_id VARCHAR(20) NOT NULL,
+        member_name VARCHAR(255) DEFAULT '',
+        idara VARCHAR(100) DEFAULT '',
+        mohalla VARCHAR(100) DEFAULT '',
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        KEY idx_event_id (event_id),
+        KEY idx_its_id (its_id),
+        UNIQUE KEY unique_event_member (event_id, member_id)
+    )"
+);
+
 $scopeOptions = bgi_get_scope_options($conn);
 $savedLocations = bgi_get_event_locations($conn);
 $selectedIdara = $isPairScopedAdmin ? bgi_current_scope_idara() : '';
@@ -125,6 +142,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
             try {
                 $createdEvents = [];
+                $createdEventIds = []; // maps "idara||mohalla" => event_id
                 $skippedScopes = [];
 
                 foreach ($targetPairs as $targetPair) {
@@ -174,8 +192,10 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                     if (!$insertStmt->execute()) {
                         throw new Exception($insertStmt->error);
                     }
+                    $newEventId = (int) $conn->insert_id;
                     $insertStmt->close();
 
+                    $createdEventIds[$targetIdara . '||' . $targetMohalla] = $newEventId;
                     $createdEvents[] = $eventCode . ' (' . $targetIdara . ' / ' . $targetMohalla . ')';
                 }
 
@@ -187,6 +207,54 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                     }
                 } else {
                     mysqli_commit($conn);
+
+                    // Save member khidmat assignments for each newly created event
+                    foreach ($createdEventIds as $evScope => $newEventId) {
+                        [$evIdara, $evMohalla] = explode('||', $evScope, 2);
+
+                        // Determine which member IDs to assign:
+                        // If a single-scope form submitted checked_members[], use those; otherwise assign all members of the scope.
+                        $submittedMembers = isset($_POST['checked_members']) && is_array($_POST['checked_members'])
+                            ? $_POST['checked_members']
+                            : null;
+
+                        if ($submittedMembers !== null && count($targetPairs) === 1) {
+                            // Single-scope creation: use admin-selected members
+                            foreach ($submittedMembers as $mItsId) {
+                                $mItsId = trim((string) $mItsId);
+                                if (!preg_match('/^\d{8}$/', $mItsId)) continue;
+                                $mLookup = $conn->prepare("SELECT id, member_name FROM members WHERE its_id = ? AND idara = ? AND mohalla = ? LIMIT 1");
+                                if (!$mLookup) continue;
+                                $mLookup->bind_param('sss', $mItsId, $evIdara, $evMohalla);
+                                $mLookup->execute();
+                                $mRow = $mLookup->get_result()->fetch_assoc();
+                                $mLookup->close();
+                                if (!$mRow) continue;
+                                $aStmt = $conn->prepare("INSERT IGNORE INTO event_assignments (event_id, member_id, its_id, member_name, idara, mohalla) VALUES (?,?,?,?,?,?)");
+                                if (!$aStmt) continue;
+                                $aStmt->bind_param('iissss', $newEventId, $mRow['id'], $mItsId, $mRow['member_name'], $evIdara, $evMohalla);
+                                $aStmt->execute();
+                                $aStmt->close();
+                            }
+                        } else {
+                            // Multi-scope or no selection: assign ALL members of this scope
+                            $allMembersRes = $conn->query(
+                                "SELECT id, its_id, member_name FROM members
+                                 WHERE idara = '" . mysqli_real_escape_string($conn, $evIdara) . "'
+                                   AND mohalla = '" . mysqli_real_escape_string($conn, $evMohalla) . "'"
+                            );
+                            if ($allMembersRes) {
+                                while ($mRow = $allMembersRes->fetch_assoc()) {
+                                    $aStmt = $conn->prepare("INSERT IGNORE INTO event_assignments (event_id, member_id, its_id, member_name, idara, mohalla) VALUES (?,?,?,?,?,?)");
+                                    if (!$aStmt) continue;
+                                    $aStmt->bind_param('iissss', $newEventId, $mRow['id'], $mRow['its_id'], $mRow['member_name'], $evIdara, $evMohalla);
+                                    $aStmt->execute();
+                                    $aStmt->close();
+                                }
+                            }
+                        }
+                    }
+
                     $message = 'Created ' . count($createdEvents) . ' event record(s): ' . implode(', ', $createdEvents) . '.';
                     if ($skippedScopes !== []) {
                         $message .= ' Skipped existing scope(s): ' . implode(', ', $skippedScopes) . '.';
@@ -303,6 +371,27 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
         <label for="reporting_time">Reporting Time:</label>
         <input type="time" id="reporting_time" name="reporting_time" value="<?= htmlspecialchars($_POST['reporting_time'] ?? '') ?>" required>
+
+        <hr style="margin:1.5rem 0;border:none;border-top:1px solid #e5e7eb;">
+
+        <!-- Khidmat Member Assignment -->
+        <h3 style="margin:0 0 0.25rem;font-size:1rem;">Khidmat Assignment</h3>
+        <p style="margin:0 0 0.75rem;font-size:0.85rem;color:#666;">
+            Select which members are assigned for khidmat at this event. By default all members of the selected Idara &amp; Mohalla are pre-selected.
+        </p>
+        <div id="member-assignment-wrap" style="display:none;">
+            <div style="display:flex;align-items:center;gap:1rem;margin-bottom:0.5rem;">
+                <button type="button" id="btn-select-all" class="btn secondary" style="padding:0.3rem 0.9rem;font-size:0.82rem;" onclick="setAllMembers(true)">Select All</button>
+                <button type="button" id="btn-deselect-all" class="btn secondary" style="padding:0.3rem 0.9rem;font-size:0.82rem;" onclick="setAllMembers(false)">Deselect All</button>
+                <span id="member-count-label" style="font-size:0.83rem;color:#555;"></span>
+            </div>
+            <div id="member-list" style="max-height:280px;overflow-y:auto;border:1px solid #d7e0db;border-radius:8px;padding:0.5rem 0.75rem;background:#fafafa;">
+                <div style="color:#888;font-size:0.85rem;padding:0.5rem 0;" id="member-loading">Loading members…</div>
+            </div>
+        </div>
+        <div id="member-assignment-hint" style="font-size:0.83rem;color:#888;">
+            Select an Idara and Mohalla above to load members.
+        </div>
 
         <hr style="margin:1.5rem 0;border:none;border-top:1px solid #e5e7eb;">
         <h3 style="margin:0 0 0.25rem;font-size:1rem;">Geofence (Optional)</h3>
@@ -424,6 +513,102 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         });
     }
     tryUpdate();
+})();
+</script>
+
+<script>
+// ── Khidmat member assignment ─────────────────────────────────────────────────
+(function () {
+    var currentIdara   = '';
+    var currentMohalla = '';
+    var loadTimer      = null;
+
+    function getSelectedIdara() {
+        var el = document.getElementById('idara');
+        if (!el) return '<?= htmlspecialchars(addslashes($selectedIdara)) ?>';
+        return (el.tagName === 'SELECT') ? el.value : (el.value || '');
+    }
+    function getSelectedMohalla() {
+        var el = document.getElementById('mohalla');
+        if (!el) return '<?= htmlspecialchars(addslashes($selectedMohalla)) ?>';
+        return (el.tagName === 'SELECT') ? el.value : (el.value || '');
+    }
+
+    function loadMembers(idara, mohalla) {
+        if (idara === '' || mohalla === '') {
+            document.getElementById('member-assignment-wrap').style.display = 'none';
+            document.getElementById('member-assignment-hint').style.display  = '';
+            return;
+        }
+        document.getElementById('member-assignment-wrap').style.display = '';
+        document.getElementById('member-assignment-hint').style.display  = 'none';
+        document.getElementById('member-loading').style.display = '';
+
+        var url = 'get_scope_members.php?idara=' + encodeURIComponent(idara) + '&mohalla=' + encodeURIComponent(mohalla);
+        fetch(url)
+            .then(function (r) { return r.json(); })
+            .then(function (data) { renderMembers(data.members || []); })
+            .catch(function () {
+                document.getElementById('member-list').innerHTML =
+                    '<div style="color:#c00;padding:0.5rem 0;">Could not load members.</div>';
+            });
+    }
+
+    function renderMembers(members) {
+        var list = document.getElementById('member-list');
+        document.getElementById('member-loading').style.display = 'none';
+
+        if (members.length === 0) {
+            list.innerHTML = '<div style="color:#888;padding:0.5rem 0;">No members found for this scope.</div>';
+            updateCount(); return;
+        }
+
+        var html = '';
+        members.forEach(function (m) {
+            html += '<label style="display:flex;align-items:center;gap:0.5rem;padding:0.3rem 0;cursor:pointer;">' +
+                '<input type="checkbox" name="checked_members[]" value="' + esc(m.its_id) + '" checked onchange="updateCount()">' +
+                '<span style="font-size:0.88rem;">' + esc(m.member_name) +
+                ' <span style="color:#888;font-size:0.8rem;">(' + esc(m.its_id) + ')</span></span></label>';
+        });
+        list.innerHTML = html;
+        updateCount();
+    }
+
+    window.updateCount = function () {
+        var all     = document.querySelectorAll('#member-list input[type=checkbox]');
+        var checked = document.querySelectorAll('#member-list input[type=checkbox]:checked');
+        var label   = document.getElementById('member-count-label');
+        if (label) label.textContent = checked.length + ' / ' + all.length + ' selected';
+    };
+    window.setAllMembers = function (state) {
+        document.querySelectorAll('#member-list input[type=checkbox]').forEach(function (cb) { cb.checked = state; });
+        updateCount();
+    };
+
+    function esc(str) {
+        return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+    }
+
+    function onScopeChange() {
+        var idara   = getSelectedIdara();
+        var mohalla = getSelectedMohalla();
+        if (idara === currentIdara && mohalla === currentMohalla) return;
+        currentIdara = idara; currentMohalla = mohalla;
+        clearTimeout(loadTimer);
+        loadTimer = setTimeout(function () { loadMembers(idara, mohalla); }, 200);
+    }
+
+    ['idara', 'mohalla'].forEach(function (id) {
+        var el = document.getElementById(id);
+        if (el && el.tagName === 'SELECT') el.addEventListener('change', onScopeChange);
+    });
+
+    // Auto-load on page ready
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', onScopeChange);
+    } else {
+        onScopeChange();
+    }
 })();
 </script>
 

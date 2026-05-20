@@ -90,6 +90,15 @@ if ($alreadyIn) {
     bgi_mobile_error('You have already checked in for this event.');
 }
 
+// Check-in time window: 30 min before → 1 hour after reporting_time
+$tw_base  = ($event['event_date'] ?? '') !== '' ? $event['event_date'] : date('Y-m-d');
+$tw_time  = ($event['reporting_time'] ?? '') !== '' ? $event['reporting_time'] : '00:00:00';
+$tw_start = strtotime($tw_base . ' ' . $tw_time) - 1800;
+$tw_end   = strtotime($tw_base . ' ' . $tw_time) + 3600;
+if (time() < $tw_start || time() > $tw_end) {
+    bgi_mobile_error('Check-in window: ' . date('H:i', $tw_start) . ' – ' . date('H:i', $tw_end) . '. Check-in is not open yet or has already closed.');
+}
+
 $isRemote = 0;
 $distanceM = null;
 $eventLat = isset($event['latitude']) && $event['latitude'] !== null ? (float) $event['latitude'] : null;
